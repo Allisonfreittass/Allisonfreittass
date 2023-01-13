@@ -3,7 +3,7 @@
 
 <div>
 <a href="https://github.com/Allisonfreittass">
-![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=Allisonfreittass&theme=dark&show_icons=true)
+[![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=Allisonfreittass)](https://github.com/Allisonfreittass/github-readme-stats)
 </div>
 
  ### Me contate por:
