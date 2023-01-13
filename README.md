@@ -3,7 +3,7 @@
 
 <div>
 
-(https://github-readme-stats.vercel.app/api?username=anuraghazra&show_icons=true&theme=transparent)
+(https://github-readme-stats.vercel.app/api?username=Allisonfreittass&show_icons=true&theme=transparent)
 </div>
 
  ### Me contate por:
