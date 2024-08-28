@@ -16,6 +16,9 @@
 <div>
 <a href = "mailto:contato@allison.freitas@alunos.unis.edu.br"><img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white" target="_blank"><button></a></div>
 
+
+![snake gif](https://github.com/your-user-name/Allisonfreittass/blob/output/github-contribution-grid-snake.gif)
+
           
 
 
