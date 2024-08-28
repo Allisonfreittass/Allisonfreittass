@@ -1,6 +1,6 @@
-Hello!! <br> 
-i'm Allison Freitas <br>
-Student at UNIS - MG
+## Hello!! <br> 
+## i'm Allison Freitas <br>
+## Student at UNIS - MG
 ##
 ## Main lenguages: <br>
  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg"  width="50" height="50"/> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg"  width="50" height="50"/>
