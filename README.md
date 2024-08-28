@@ -1,7 +1,4 @@
-![snake gif](https://github.com/your-user-name/Allisonfreittass/blob/output/github-contribution-grid-snake.gif)
- 
- 
- # Allison Freitas
+  # Allison Freitas
  Hello!! <br> 
  i'm Allison Freitas <br>
  Student at UNIS - MG
