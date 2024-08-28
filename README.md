@@ -3,7 +3,7 @@
  i'm Allison Freitas <br>
  Student at UNIS - MG
 ##
-Main lenguages:
+Main lenguages: <br>
  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg"  width="50" height="50"/>
  ##
 
