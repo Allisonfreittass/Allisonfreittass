@@ -15,7 +15,9 @@ Know Languages <br>
 </div>
 
 <div>
-  
+ 
+  [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Allisonfreittass&layout=donut)](https://github.com/anuraghazra/github-readme-stats)
+ 
 ![snake gif](https://github.com/your-user-name/Allisonfreittass/blob/output/github-contribution-grid-snake.gif)
 
           
