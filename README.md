@@ -11,9 +11,11 @@ Know Languages <br>
 <div>
  <a href="https://github.com/Allisonfreittass"></a>
  <img width="42%" src="https://github-readme-stats-sigma-five.vercel.app/api?username=Allisonfreittass&show_icons=true&theme=transparent&include_all_commits=true&count_private=true"> </a> <br>
- <a href=""></a>
+ <a href=""></a>  
+ 
+ ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Allisonfreittass&layout=donut)
+ 
 </div> 
-  ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Allisonfreittass&layout=donut)
  
   ![snake gif](https://github.com/your-user-name/Allisonfreittass/blob/output/github-contribution-grid-snake.gif)
 
