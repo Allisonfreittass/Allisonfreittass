@@ -2,7 +2,7 @@
 ### i'm Allison Freitas <br>
 ### Student at UNIS - MG
 ##
- Main lenguages: <br>
+ <h3 align="left">My Stack ~</h3>
  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg"  width="50" height="50"/> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg"  width="50" height="50"/>
  ##            
 <div style="text-align: center;" align="center">
