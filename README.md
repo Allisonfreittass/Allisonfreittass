@@ -2,9 +2,10 @@
 ### i'm Allison Freitas <br>
 ### Student at UNIS - MG
 ##
- <h3 align="left">My Stack ~</h3>
+ <h3 align="left">My Stack</h3>
+ <div align="left">
  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg"  width="50" height="50"/> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg"  width="50" height="50"/>
- ##            
+ </div>         
 <div style="text-align: center;" align="center">
   <h3>* GitHub Stats *</h3>
   <br>
