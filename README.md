@@ -1,6 +1,6 @@
 ### Hello!! <br> 
 ### i'm Allison Freitas <br>
-### Student at UNIS - MG
+### Full-Stack Developer at F2 Tecnologia
 ##
  <h3 align="left">My Stack</h3>
  <div align="left">
