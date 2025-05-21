@@ -45,15 +45,4 @@
   </picture>
 </div>
 
-## 💻 Principais Projetos
-
-<div align="center">
-  <a href="https://github.com/Allisonfreittass/projeto-exemplo">
-    <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=Allisonfreittass&repo=projeto-exemplo&theme=dark&bg_color=000&title_color=FF00F6&icon_color=FF00F6&text_color=8B8B8B&border_color=561760" />
-  </a>
-  <!-- Você pode adicionar mais projetos aqui quando quiser destacá-los -->
-</div>
-
----
-
 ⭐️ From [Allison Freitas](https://github.com/Allisonfreittass)
