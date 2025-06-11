@@ -18,8 +18,8 @@ jobs:
           filename: metrics.plugin.skyline.svg # Nome do arquivo SVG gerado
           # Plugins de Skyline
           plugin_skyline: yes
-          plugin_skyline_year: current-year # Ou um ano específico, ex: 2023
-          plugin_skyline_frames: 60 # Número de frames para a animação (quanto mais, maior o arquivo)
-          plugin_skyline_quality: 0.5 # Qualidade da imagem
-          # Você pode usar 'skyline.github.com' ou 'honzaap/GithubCity'
-          # plugin_skyline_settings: '{"url": "https://honzaap.github.io/GithubCity", "ready": "document.querySelector(\"#root > div > div > canvas\")", "wait": 1, "hide": "#root > div > div > a"}'
+          plugin_skyline_year: current-year
+          plugin_skyline_frames: 60
+          plugin_skyline_quality: 0.5
+          # !!! ADICIONE ESTA LINHA OU AUMENTE O VALOR !!!
+          plugin_skyline_timeout: 120000 # Aumentado para 120 segundos (120000ms)
