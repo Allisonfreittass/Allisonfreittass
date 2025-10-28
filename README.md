@@ -3,7 +3,7 @@
 ### Full Stack Developer
 
 - 🔭 I'm currently working on **F2 Tecnologia as Full Stack Engineer
-MyBlock - My Sass for my graduate**
+MyBlock - My SasS for my graduate**
 
 - 🌱 I'm currently learning **Web3 & AI & SOL**
 
