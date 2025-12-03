@@ -1,19 +1,17 @@
-# Hi 👋, I'm Allison Freitas
-
 ### Full Stack Developer
 
-- 🔭 I'm currently working on **F2 Tecnologia as Full Stack Engineer
+- I'm currently working on **F2 Tecnologia as Full Stack Engineer
 MyBlock - My SasS for my graduate**
 
-- 🌱 I'm currently learning **Web3 & AI & SOL**
+-  I'm currently learning **Web3 & AI & SOL**
 
-- 👯 I'm looking to collaborate on **Open source projects**
+-  I'm looking to collaborate on **Open source projects**
 
-- 💬 Ask me about **React, Node, Vue, Web3**
+-  Ask me about **React, Node, Vue, Web3**
 
-- 📫 How to reach me **allisonfreittass@gmail.com**
+-  How to reach me **allisonfreittass@gmail.com**
 
-- 👨‍💻 All of my projects are available at **[https://allisonfreittass.github.io/](https://allisonfreittass.github.io/)**
+-  All of my projects are available at **[https://allisonfreittass.github.io/](https://allisonfreittass.github.io/)**
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
