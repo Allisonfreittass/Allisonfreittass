@@ -7,8 +7,6 @@ MyBlock - My SasS for my graduate**
 
 -  I'm looking to collaborate on **Open source projects**
 
--  Ask me about **React, Node, Vue, Web3**
-
 -  How to reach me **allisonfreittass@gmail.com**
 
 -  All of my projects are available at **[https://allisonfreittass.github.io/](https://allisonfreittass.github.io/)**
