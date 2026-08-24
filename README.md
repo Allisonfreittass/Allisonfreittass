@@ -1,5 +1,5 @@
 ## Hi, I'm Allison 👋
-**Mid-Level Full Stack Developer** | Node.js | React | APIs | Dashboards
+**Full Stack Developer** | Node.js | React | APIs | Dashboards
 
 I'm a Full Stack Developer with professional experience building production-ready web applications, public APIs, automated reports, and data-driven dashboards.
 
@@ -23,5 +23,5 @@ I hold a Bachelor’s degree in Computer Science and have worked on projects inv
 
 ### 📫 Contact
 - Email: allisonfreitass@gmail.com  
-- LinkedIn: https://linkedin.com/in/allisonfreitass  
+- LinkedIn: [https://linkedin.com/in/allisonfreitass](https://www.linkedin.com/in/allisonfreittass/)  
 - Portfolio: [https://allisonfreitass.github.io/](https://allisonfreittass.github.io/)
