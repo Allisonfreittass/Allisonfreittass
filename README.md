@@ -24,4 +24,4 @@ I hold a Bachelor’s degree in Computer Science and have worked on projects inv
 ### 📫 Contact
 - Email: allisonfreittass@gmail.com  
 - LinkedIn: [https://linkedin.com/in/allisonfreittass](https://www.linkedin.com/in/allisonfreittass/)  
-- Portfolio: [https://allisonfreitass.github.io/](https://allisonfreittass.github.io/)
+- Portfolio: [https://allisonfreittass.github.io/](https://allisonfreittass.github.io/)
