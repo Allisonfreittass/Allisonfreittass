@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" width="1280" height="320" role="img" aria-label="Allison Freitas — Systems that run on their own">
+  <defs>
+    <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse">
+      <circle cx="7" cy="7" r="1" fill="#FFFFFF" fill-opacity=".10"/>
+    </pattern>
+    <radialGradient id="orb" cx="32%" cy="28%" r="78%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".07" stop-color="#B9BBFF"/>
+      <stop offset=".26" stop-color="#2326FF"/>
+      <stop offset=".46" stop-color="#0002CC"/>
+      <stop offset=".74" stop-color="#01000C"/>
+      <stop offset="1" stop-color="#BF032F"/>
+    </radialGradient>
+    <radialGradient id="pupil" cx="50%" cy="50%" r="50%">
+      <stop offset=".35" stop-color="#01000C"/>
+      <stop offset=".7" stop-color="#2326FF"/>
+      <stop offset="1" stop-color="#FFFFFF"/>
+    </radialGradient>
+    <path id="ring" d="M1040,160 m-128,0 a128,128 0 1,1 256,0 a128,128 0 1,1 -256,0"/>
+  </defs>
+
+  <rect width="1280" height="320" fill="#0002CC"/>
+  <rect width="1280" height="320" fill="url(#dots)"/>
+
+  <text x="56" y="62" font-family="Menlo, Consolas, 'Courier New', monospace" font-size="14" letter-spacing="4" fill="#DADBFF">[ SOFTWARE ENGINEER ] FULL-STACK · BACKEND · AI</text>
+
+  <text x="50" y="178" font-family="'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="104" letter-spacing="-3" fill="#FF4A2E">ALLISON</text>
+  <text x="50" y="268" font-family="'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="104" letter-spacing="-3" fill="#FF4A2E">FREITAS</text>
+
+  <text font-family="Menlo, Consolas, 'Courier New', monospace" font-size="13" letter-spacing="5" fill="#FFFFFF">
+    <textPath href="#ring">SYSTEMS THAT RUN ON THEIR OWN ✦ SYSTEMS THAT RUN ON THEIR OWN ✦ </textPath>
+  </text>
+  <circle cx="1040" cy="160" r="104" fill="url(#orb)"/>
+  <circle cx="1052" cy="152" r="19" fill="url(#pupil)"/>
+
+  <text x="56" y="300" font-family="Menlo, Consolas, 'Courier New', monospace" font-size="13" letter-spacing="4" fill="#DADBFF">VARGINHA, BRAZIL · OPEN TO RELOCATION · NL / EU</text>
+</svg>
