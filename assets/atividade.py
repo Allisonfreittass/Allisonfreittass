@@ -9,6 +9,7 @@ Action .github/workflows/rastros.yml; à mão:
 import datetime as dt
 import json
 import os
+import urllib.error
 import urllib.request
 
 from gerar import ITALICO, MONO, MONO_M, ROT, SERIF, TEMAS, rotulo, salvar, svg, txt
@@ -21,13 +22,23 @@ NIVEIS = {'NONE': 0, 'FIRST_QUARTILE': 1, 'SECOND_QUARTILE': 2, 'THIRD_QUARTILE'
 def buscar():
     consulta = ('query($u:String!){user(login:$u){contributionsCollection{contributionCalendar{'
                 'totalContributions weeks{contributionDays{date contributionCount contributionLevel}}}}}}')
-    req = urllib.request.Request(
-        'https://api.github.com/graphql',
-        data=json.dumps({'query': consulta, 'variables': {'u': USUARIO}}).encode(),
-        headers={'Authorization': 'bearer ' + os.environ['GITHUB_TOKEN'], 'Content-Type': 'application/json',
-                 'User-Agent': 'rastros-readme'})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        dados = json.load(r)
+    # METRICS_TOKEN (pessoal) conta também as contribuições privadas; se estiver
+    # vencido ou ausente, cai para o token da própria Action.
+    tokens = [t for t in (os.environ.get('METRICS_TOKEN'), os.environ.get('GITHUB_TOKEN')) if t]
+    for i, token in enumerate(tokens):
+        req = urllib.request.Request(
+            'https://api.github.com/graphql',
+            data=json.dumps({'query': consulta, 'variables': {'u': USUARIO}}).encode(),
+            headers={'Authorization': 'bearer ' + token, 'Content-Type': 'application/json',
+                     'User-Agent': 'rastros-readme'})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                dados = json.load(r)
+            break
+        except urllib.error.HTTPError as e:
+            if e.code != 401 or i == len(tokens) - 1:
+                raise
+            print('token %d recusado (401), tentando o próximo' % (i + 1))
     if 'errors' in dados:
         raise SystemExit(dados['errors'])
     cal = dados['data']['user']['contributionsCollection']['contributionCalendar']
