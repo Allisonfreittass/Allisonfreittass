@@ -1,27 +1,18 @@
 <a href="https://allisonfreittass.github.io/">
   <picture>
-    <source media="(prefers-color-scheme: light)" srcset="assets/banner-neblina.svg">
-    <img src="assets/banner-noite.svg" alt="Allison Freitas. Software engineer, full-stack, backend and AI. Systems that keep running when nobody is watching." width="100%">
+    <source media="(prefers-color-scheme: light)" srcset="assets/topo-neblina.svg">
+    <img src="assets/topo-noite.svg" alt="Allison Freitas. Software engineer, full-stack at F2 Tecnologia. I build systems that keep running when nobody is watching. Open to relocation, Netherlands / EU." width="100%">
   </picture>
 </a>
-
-Full-stack engineer at **F2 Tecnologia**, mostly backend. B.Sc. in Computer Science · native Portuguese, fluent English · **open to relocation, Netherlands / EU first.**
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="assets/sobre-neblina.svg">
-  <img src="assets/sobre-noite.svg" alt="About. Now: Visão, a cognitive architecture with memory. At work: APIs, webhooks into ERPs and LLM automations. Goal: systems that run unsupervised, from the Netherlands. Beyond code: late nights, rain, The Neighbourhood on repeat." width="100%">
+  <img src="assets/sobre-noite.svg" alt="About. Full-stack engineer, mostly on the backend: public APIs, webhooks into ERPs and automations with LLMs. On my own time I build systems that keep running when nobody is watching, from a Game Boy emulator in Go to an agent with persistent memory. Now: Visão. Goal: relocate to the Netherlands / EU. Beyond code: late nights, rain, The Neighbourhood." width="100%">
 </picture>
-
-<a href="https://github.com/Allisonfreittass/visao">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="assets/visao-neblina.svg">
-    <img src="assets/visao-noite.svg" alt="Visão. Personal research, 2026. Trace: introspection. An agent born without a name that decides who it is. Phases 0 to 6 and 9 built." width="100%">
-  </picture>
-</a>
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="assets/rastros-neblina.svg">
-  <img src="assets/rastros-noite.svg" alt="Traces. 01 AURIS: Listening without intruding: no bot joins the room. 02 gameboy: Going back to childhood, but demanding 498 out of 500. 03 Thoth AI: Only claim what has a source. 04 MyBlock: Rules that enforce themselves, with nobody chasing. 05 webhook-go: Nothing entrusted to me gets lost." width="100%">
+  <img src="assets/rastros-noite.svg" alt="Traces. Visão: An agent born without a name that decides who it is. AURIS: Listening without intruding: no bot joins the room. gameboy: Going back to childhood, demanding 498 out of 500. Thoth AI: Only claim what has a source. MyBlock: Rules that enforce themselves, with nobody chasing. webhook-go: Nothing entrusted to me gets lost." width="100%">
 </picture>
 
 <p align="center">
@@ -37,13 +28,6 @@ Full-stack engineer at **F2 Tecnologia**, mostly backend. B.Sc. in Computer Scie
   <source media="(prefers-color-scheme: light)" srcset="assets/atividade-neblina.svg">
   <img src="assets/atividade-noite.svg" alt="Contributions in the last 12 months, with current and longest streak. Updated daily." width="100%">
 </picture>
-
-<a href="https://www.linkedin.com/in/allisonfreittass/">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="assets/contato-neblina.svg">
-    <img src="assets/contato-noite.svg" alt="Let's build. Got a system that needs to run without supervision? I want to hear about it." width="100%">
-  </picture>
-</a>
 
 <p align="center">
   <a href="https://www.linkedin.com/in/allisonfreittass/"><b>LinkedIn</b></a> ·

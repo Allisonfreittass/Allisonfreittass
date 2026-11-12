@@ -1,18 +1,23 @@
 """Gera as imagens do README do perfil no sistema Rastros.
 
-Cada imagem sai em duas versões: -noite (escuro, padrão) e -neblina (claro).
-Todo texto vira contorno (path), então a Instrument Serif e a JetBrains Mono
-aparecem iguais no GitHub sem carregar fonte nenhuma.
+Regras desta versão, para não poluir:
+  · todo cartão é igual (mesmo fundo, borda, raio e margem de 32);
+  · as imagens têm 800 de largura, perto do tamanho em que o GitHub as mostra,
+    então o texto chega à tela com tamanho de leitura;
+  · no máximo dois estilos de texto por bloco; a única ilustração (a floresta
+    com chuva) fica num painel do cartão About; o vermelho aparece só em pontos.
+
+Cada imagem sai em -noite (escuro) e -neblina (claro). O texto vira contorno,
+então as fontes aparecem iguais no GitHub sem carregar nada.
 
 Uso:  pip install fonttools uharfbuzz
       python3 assets/gerar.py        (imagens fixas)
-      python3 assets/atividade.py    (gráfico e ritmo; roda todo dia na Action)
+      python3 assets/atividade.py    (gráfico; roda todo dia na Action)
 As fontes ficam em assets/fontes (SIL Open Font License, licenças ao lado).
 """
 import html
 import math
 import os
-import sys
 
 import uharfbuzz as hb
 from fontTools.pens.svgPathPen import SVGPathPen
@@ -21,26 +26,25 @@ from fontTools.ttLib import TTFont
 
 SAIDA = os.path.dirname(os.path.abspath(__file__))
 FONTES = os.path.join(SAIDA, 'fontes')
+W = 800      # largura de todas as imagens
+M = 32       # margem interna dos cartões
 
 # ─────────── Tokens Rastros ───────────
 TEMAS = {
     'noite': dict(
-        fundo='#090E10', elev='#0E1619', hover='#142024',
-        tinta='#E6E9E6', suave='#A9B4B2', fraca='#7E8B8A',
-        linha='rgba(214,228,226,.09)', forte='rgba(214,228,226,.22)',
-        estanho='#A9BCBD', estanho_linha='rgba(169,188,189,.34)',
-        lanterna='#E0483F', brilho='rgba(224,72,63,.55)', luz='rgba(224,72,63,.16)',
-        sobre_tinta='#090E10', chuva='200,218,222', nevoa='#A9B4B2', nevoa_a=(.06, .05, .07),
-        lua='rgba(214,228,226,.20)',
+        cartao='#090E10', borda='rgba(214,228,226,.13)', hover='#142024', elev='#0E1619', fundo='#090E10',
+        tinta='#E6E9E6', suave='#A9B4B2', fraca='#7E8B8A', linha='rgba(214,228,226,.09)', forte='rgba(214,228,226,.22)',
+        estanho='#A9BCBD', lanterna='#E0483F', brilho='rgba(224,72,63,.55)', luaz='#E6E9E6',
+        # a ilustração: céu que clareia na névoa do horizonte, pinheiros mais escuros quanto mais perto
+        ceu=('#0B1214', '#1F3035'), pinheiros=('#18282D', '#0F1A1E', '#070B0D'),
+        chuva='200,218,222', nevoa='#A9B4B2', nevoa_a=.07, lua='rgba(214,228,226,.22)',
     ),
     'neblina': dict(
-        fundo='#E9EDEC', elev='#F3F5F4', hover='#DCE2E1',
-        tinta='#0E1619', suave='#3D4A4B', fraca='#546163',
-        linha='rgba(14,22,25,.10)', forte='rgba(14,22,25,.22)',
-        estanho='#4F6366', estanho_linha='rgba(79,99,102,.40)',
-        lanterna='#B3342B', brilho='rgba(179,52,43,.30)', luz='rgba(179,52,43,.08)',
-        sobre_tinta='#E9EDEC', chuva='14,22,25', nevoa='#FFFFFF', nevoa_a=(.55, .45, .6),
-        lua='rgba(255,255,255,.75)',
+        cartao='#F6F8F7', borda='rgba(14,22,25,.12)', hover='#DCE2E1', elev='#F3F5F4', fundo='#E9EDEC',
+        tinta='#0E1619', suave='#3D4A4B', fraca='#546163', linha='rgba(14,22,25,.10)', forte='rgba(14,22,25,.22)',
+        estanho='#4F6366', lanterna='#B3342B', brilho='rgba(179,52,43,.30)', luaz='#FFFFFF',
+        ceu=('#F3F5F4', '#D3DCDB'), pinheiros=('#BCC8C7', '#98A8A7', '#6F8382'),
+        chuva='14,22,25', nevoa='#FFFFFF', nevoa_a=.6, lua='rgba(255,255,255,.8)',
     ),
 }
 
@@ -65,64 +69,82 @@ class Fonte:
 
     def largura(self, texto, tam, track=0.0):
         _, pos = self._molda(texto)
-        s = tam / self.upem
-        return sum(p.x_advance for p in pos) * s + track * tam * max(0, len(pos) - 1)
+        return sum(p.x_advance for p in pos) * tam / self.upem + track * tam * max(0, len(pos) - 1)
 
     def path(self, texto, tam, x, y, track=0.0, ancora='start'):
         infos, pos = self._molda(texto)
         s = tam / self.upem
         w = self.largura(texto, tam, track)
-        if ancora == 'middle':
-            x -= w / 2
-        elif ancora == 'end':
-            x -= w
+        x -= {'start': 0, 'middle': w / 2, 'end': w}[ancora]
         partes, cx = [], x
         for info, p in zip(infos, pos):
-            nome = self.ordem[info.codepoint]
             pen = SVGPathPen(self.glyphs, ntos=lambda v: ('%.1f' % v).rstrip('0').rstrip('.'))
-            gx, gy = cx + p.x_offset * s, y - p.y_offset * s
-            self.glyphs[nome].draw(TransformPen(pen, (s, 0, 0, -s, gx, gy)))
-            d = pen.getCommands()
-            if d:
-                partes.append(d)
+            self.glyphs[self.ordem[info.codepoint]].draw(
+                TransformPen(pen, (s, 0, 0, -s, cx + p.x_offset * s, y - p.y_offset * s)))
+            partes.append(pen.getCommands())
             cx += p.x_advance * s + track * tam
         return ''.join(partes)
 
 
 SERIF = Fonte('InstrumentSerif-Regular.ttf')
 ITALICO = Fonte('InstrumentSerif-Italic.ttf')
+SANS = Fonte('InterTight-Regular.ttf')
+SANS_M = Fonte('InterTight-Medium.ttf')
 MONO = Fonte('JetBrainsMono-Regular.ttf')
-MONO_M = Fonte('JetBrainsMono-Medium.ttf')
 
 
-def txt(fonte, texto, tam, x, y, cor, track=0.0, ancora='start', extra=''):
-    return '<path fill="%s" %s d="%s"/>' % (cor, extra, fonte.path(texto, tam, x, y, track, ancora))
+def txt(fonte, texto, tam, x, y, cor, track=0.0, ancora='start'):
+    return '<path fill="%s" d="%s"/>' % (cor, fonte.path(texto, tam, x, y, track, ancora))
 
 
-def rotulo(texto, x, y, cor, tam=13, ancora='start', fonte=None):
-    """Rótulo mono em caixa alta com tracking .08em, como o token `rotulo`.
-    O GitHub mostra as imagens a ~65% do tamanho, então o corpo é ampliado (ROT)
-    para o rótulo chegar à tela com uns 11–12px, como na landing."""
-    return txt(fonte or MONO_M, texto.upper(), tam * ROT, x, y, cor, .08, ancora)
+def mono(texto, x, y, cor, tam=11, ancora='start'):
+    """Rótulo mono em caixa alta com tracking .06em (o token `rotulo`)."""
+    return txt(MONO, texto.upper(), tam, x, y, cor, .06, ancora)
 
 
-ROT = 1.38
+def larg_mono(texto, tam=11):
+    return MONO.largura(texto.upper(), tam, .06)
 
 
-def svg(w, h, titulo, corpo, estilo=''):
+def quebra(fonte, texto, tam, largura):
+    linhas, atual = [], ''
+    for p in texto.split():
+        teste = (atual + ' ' + p).strip()
+        if atual and fonte.largura(teste, tam) > largura:
+            linhas.append(atual)
+            atual = p
+        else:
+            atual = teste
+    return linhas + [atual]
+
+
+def svg(h, titulo, corpo, estilo=''):
+    t = html.escape(titulo)
     return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" role="img" aria-label="%s">'
-            '<title>%s</title>%s%s</svg>\n') % (w, h, w, h, html.escape(titulo), html.escape(titulo),
-                                                ('<style>%s</style>' % estilo) if estilo else '', corpo)
+            '<title>%s</title>%s%s</svg>\n') % (W, h, W, h, t, t, ('<style>%s</style>' % estilo) if estilo else '', corpo)
 
 
-def leque(x, y, w, cor):
-    """O leque Art Deco da marca (viewBox 100×52), na largura w."""
-    k = w / 100
-    return ('<g transform="translate(%.1f %.1f) scale(%.3f)">'
-            '<g fill="none" stroke="%s" stroke-width="%.2f">'
-            '<path d="M2 50 A48 48 0 0 1 98 50"/><path d="M14 50 A36 36 0 0 1 86 50" opacity=".6"/>'
-            '<path d="M50 50V4M50 50L26 10.4M50 50L74 10.4M50 50L9.6 26M50 50L90.4 26"/></g>'
-            '<path d="M40 50 A10 10 0 0 1 60 50 Z" fill="%s"/></g>') % (x, y, k, cor, 1.3 / k, cor)
+def cartao(h, c):
+    return '<rect x=".5" y=".5" width="%d" height="%d" rx="12" fill="%s" stroke="%s"/>' % (W - 1, h - 1, c['cartao'], c['borda'])
+
+
+def cabecalho(n, titulo, y, c, direita=''):
+    corpo = mono(n, M, y, c['estanho'], 12)
+    corpo += txt(SANS_M, titulo, 17, M + larg_mono(n, 12) + 12, y + 1, c['tinta'])
+    if direita:
+        corpo += mono(direita, W - M, y, c['fraca'], 10.5, 'end')
+    return corpo
+
+
+def pilula(x, y, texto, c, ponto=False):
+    w = larg_mono(texto, 10.5) + 28 + (14 if ponto else 0)
+    corpo = '<rect x="%.1f" y="%.1f" width="%.1f" height="26" rx="13" fill="none" stroke="%s"/>' % (x + .5, y + .5, w - 1, c['forte'])
+    tx = x + 14
+    if ponto:
+        corpo += '<circle cx="%.1f" cy="%.1f" r="3.5" fill="%s"/>' % (tx + 3, y + 13, c['lanterna'])
+        tx += 14
+    corpo += mono(texto, tx, y + 17, c['suave'], 10.5)
+    return corpo, w
 
 
 def salvar(nome, tema, conteudo):
@@ -130,7 +152,7 @@ def salvar(nome, tema, conteudo):
         f.write(conteudo)
 
 
-# ─────────── Floresta (mesmo desenho da landing) ───────────
+# ─────────── Desenhos da marca ───────────
 def floresta(seed, camadas, largura):
     s = [seed]
 
@@ -139,24 +161,24 @@ def floresta(seed, camadas, largura):
         return s[0] / 2147483647
 
     def pinheiro(x, base, h, w):
-        n, step, W, L, R = 8, h / 9, w / 2, [], []
+        n, step, Wd, L, R = 8, h / 9, w / 2, [], []
         for k in range(n):
             yk = base - step * k - step * .3
-            o = W * (1 - k / n) * (.85 + rnd() * .3)
+            o = Wd * (1 - k / n) * (.85 + rnd() * .3)
             L += [(x - o, yk), (x - o * .3, yk - step * 1.25)]
             R += [(x + o, yk + step * .1), (x + o * .3, yk - step * 1.2)]
-        p = 'M%.1f %.1f' % (x - W * .12, base)
+        p = 'M%.1f %.1f' % (x - Wd * .12, base)
         p += ''.join(' L%.1f %.1f' % q for q in L)
         p += ' L%.1f %.1f' % (x, base - h)
         p += ''.join(' L%.1f %.1f' % q for q in reversed(R))
-        return p + ' L%.1f %.1f Z' % (x + W * .12, base)
+        return p + ' L%.1f %.1f Z' % (x + Wd * .12, base)
 
     saida = []
     for cor, base, hmin, hmax, gap, fundo in camadas:
-        d, x = '', -20.0
-        while x < largura + 40:
+        d, x = '', -10.0
+        while x < largura + 20:
             h = hmin + rnd() * (hmax - hmin)
-            d += pinheiro(x, base + rnd() * 14, h, h * .3)
+            d += pinheiro(x, base + rnd() * 6, h, h * .3)
             x += gap * (.55 + rnd() * .8)
         d += 'M0 %d H%d V%d H0 Z' % (base, largura, fundo)
         saida.append('<path fill="%s" d="%s"/>' % (cor, d))
@@ -166,241 +188,145 @@ def floresta(seed, camadas, largura):
 def onda(x0, x1, meio, amp):
     """A linha de sinal da landing, congelada em t = 0."""
     pts = []
-    for i in range(0, 301):
-        u = i / 300
+    for i in range(0, 241):
+        u = i / 240
         env = math.exp(-((u - .5) / .22) ** 2) * .85 + .08
         y = meio + math.sin(u * 40) * math.sin(u * 6) * env * amp + math.sin(u * 130) * env * amp * .083
         pts.append((x0 + (x1 - x0) * u, y))
     return 'M' + ' L'.join('%.1f %.1f' % p for p in pts)
 
 
-# ─────────── Banner ───────────
-def banner(t, nome):
-    W, H = 1280, 420
+MOVIMENTO = '@media (prefers-reduced-motion:reduce){*{animation:none!important}}'
+
+
+# ─────────── 1. Topo ───────────
+def topo(t):
+    H = 300
     c = TEMAS[t]
-    estilo = (
-        '.chuva{animation:cai 1.1s linear infinite}.chuva2{animation:cai2 1.9s linear infinite}'
-        '@keyframes cai{to{transform:translate(-36px,200px)}}@keyframes cai2{to{transform:translate(-47px,260px)}}'
-        '.nv{animation:deriva 46s ease-in-out infinite alternate}.nv2{animation-duration:70s;animation-direction:alternate-reverse}'
-        '.nv3{animation-duration:90s}@keyframes deriva{to{transform:translateX(-140px)}}'
-        '.farol{offset-path:path("%s");animation:corre 12s linear infinite}'
-        '@keyframes corre{from{offset-distance:0%%}to{offset-distance:100%%}}'
-        '@media (prefers-reduced-motion:reduce){.chuva,.chuva2,.nv,.farol{animation:none}.farol{offset-distance:62%%}}'
-    ) % onda(56, 1224, 300, 24)
-    rgb = c['chuva']
-    defs = (
-        '<defs>'
-        '<linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%s"/>'
-        '<stop offset=".55" stop-color="%s"/><stop offset=".8" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>'
-        '<radialGradient id="lua" cx="1010" cy="118" r="210" gradientUnits="userSpaceOnUse">'
-        '<stop offset="0" stop-color="%s"/><stop offset=".4" stop-color="%s" stop-opacity=".35"/><stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>'
-        '<linearGradient id="sinal" x1="56" x2="1224" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="%s" stop-opacity="0"/>'
-        '<stop offset=".12" stop-color="%s"/><stop offset=".88" stop-color="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></linearGradient>'
-        '<filter id="nevoa" x="-20%%" y="-200%%" width="140%%" height="500%%"><feGaussianBlur stdDeviation="16"/></filter>'
-        '<filter id="glow" x="-300%%" y="-300%%" width="700%%" height="700%%"><feGaussianBlur stdDeviation="5"/></filter>'
-        '<pattern id="gotas" width="160" height="200" patternUnits="userSpaceOnUse">'
-        '<path stroke="rgba(%s,.13)" stroke-width=".9" d="M20 10l-3 17M88 64l-4 22M140 120l-3 16M52 150l-4 20M118 6l-2 13M8 98l-3 18"/></pattern>'
-        '<pattern id="gotas2" width="210" height="260" patternUnits="userSpaceOnUse">'
-        '<path stroke="rgba(%s,.08)" stroke-width=".8" d="M30 30l-2 12M120 90l-2 14M180 200l-2 11M70 220l-2 13M160 20l-2 10"/></pattern>'
-        '</defs>'
-    ) % (c['fundo'], c['elev'], c['hover'], c['fundo'], c['lua'], c['lua'], c['lua'],
-         c['tinta'], c['tinta'], c['tinta'], c['tinta'], rgb, rgb)
-    a1, a2, a3 = c['nevoa_a']
-    mata = floresta(7, [
-        (c['hover'], 300, 80, 150, 22, H),
-        (c['elev'], 345, 100, 175, 29, H),
-        (c['fundo'], 392, 120, 200, 40, H),
-    ], W)
-    nevoa = (
-        '<g filter="url(#nevoa)">'
-        '<rect class="nv" x="-80" y="250" width="1500" height="34" rx="17" fill="%s" opacity="%s"/>'
-        '<rect class="nv nv2" x="-160" y="318" width="1600" height="30" rx="15" fill="%s" opacity="%s"/>'
-        '<rect class="nv nv3" x="-60" y="384" width="1500" height="40" rx="20" fill="%s" opacity="%s"/></g>'
-    ) % (c['nevoa'], a1, c['nevoa'], a2, c['nevoa'], a3)
-    nome_tam = 150
-    corpo = (
-        defs
-        + '<rect width="%d" height="%d" fill="url(#ceu)"/>' % (W, H)
-        + '<circle cx="1010" cy="118" r="210" fill="url(#lua)"/>'
-        + mata + nevoa
-        + rotulo('Software engineer · Full-stack · Backend · AI', 56, 62, c['suave'])
-        + rotulo('Varginha, BR · Open to relocation · NL / EU', 1224, 62, c['suave'], ancora='end')
-        + txt(SERIF, 'Allison Freitas', nome_tam, 50, 238, c['tinta'], -.035)
-        + '<path d="%s" fill="none" stroke="url(#sinal)" stroke-width="1.3" opacity=".8"/>' % onda(56, 1224, 300, 24)
-        + '<g class="farol"><circle r="11" fill="%s" filter="url(#glow)"/><circle r="3.6" fill="%s"/></g>' % (c['brilho'], c['lanterna'])
-        + txt(ITALICO, 'Systems that keep running when nobody is watching.', 34, 56, 380, c['suave'])
-        + rotulo('allisonfreittass.github.io ↗', 1224, 372, c['fraca'], 12, 'end')
-        + '<g class="chuva"><rect x="0" y="-200" width="1320" height="620" fill="url(#gotas)"/></g>'
-        + '<g class="chuva2"><rect x="0" y="-260" width="1340" height="680" fill="url(#gotas2)"/></g>'
-    )
-    corpo = '<g>%s</g>' % corpo
-    salvar('banner', t, svg(W, H, nome, '<clipPath id="q"><rect width="%d" height="%d" rx="6"/></clipPath><g clip-path="url(#q)">%s</g>' % (W, H, corpo), estilo))
+    trilha = onda(470, W - M, 150, 40)
+    estilo = ('.farol{offset-path:path("%s");animation:corre 11s linear infinite}'
+              '@keyframes corre{from{offset-distance:0%%}to{offset-distance:100%%}}' % trilha) + MOVIMENTO
+    corpo = cartao(H, c)
+    corpo += ('<defs><linearGradient id="s" x1="470" x2="%d" gradientUnits="userSpaceOnUse">'
+              '<stop offset="0" stop-color="%s" stop-opacity="0"/><stop offset=".2" stop-color="%s"/>'
+              '<stop offset=".85" stop-color="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></linearGradient>'
+              '<filter id="b" x="-300%%" y="-300%%" width="700%%" height="700%%"><feGaussianBlur stdDeviation="4"/></filter></defs>'
+              ) % (W - M, c['tinta'], c['tinta'], c['tinta'], c['tinta'])
+    p1, w1 = pilula(M, M, 'Open to relocation · NL / EU', c, ponto=True)
+    p2, _ = pilula(M + w1 + 8, M, 'Varginha, BR · UTC−3', c)
+    corpo += p1 + p2
+    corpo += txt(SERIF, 'Allison', 76, M - 3, 140, c['tinta'], -.025)
+    corpo += txt(SERIF, 'Freitas', 76, M - 3, 206, c['tinta'], -.025)
+    corpo += txt(SANS, 'Software engineer · Full-stack at F2 Tecnologia', 14.5, M, 240, c['suave'])
+    a = 'I build systems that keep running '
+    corpo += txt(SANS, a, 14.5, M, 266, c['tinta'])
+    corpo += txt(ITALICO, 'when nobody is watching.', 18, M + SANS.largura(a, 14.5), 266, c['tinta'])
+    # a linha de sinal, com a lanterna correndo
+    corpo += '<path d="%s" fill="none" stroke="url(#s)" stroke-width="1.2" opacity=".85"/>' % trilha
+    corpo += '<g class="farol"><circle r="8" fill="%s" filter="url(#b)"/><circle r="3" fill="%s"/></g>' % (c['brilho'], c['lanterna'])
+    corpo += mono('System running · signal steady', W - M, 266, c['fraca'], 10.5, 'end')
+    salvar('topo', t, svg(H, 'Allison Freitas. Software engineer, full-stack at F2 Tecnologia. I build systems that keep running when nobody is watching. Open to relocation, Netherlands / EU.', corpo, estilo))
 
 
-# ─────────── Visão, na moldura Deco ───────────
-def visao(t):
-    W, H = 1280, 400
+# ─────────── 2. About, com a única ilustração ───────────
+SOBRE_TEXTO = [
+    'Full-stack engineer, mostly on the backend: public APIs, webhooks into ERPs and automations with LLMs.',
+    'On my own time I build systems that keep running when nobody is watching, from a Game Boy emulator in Go to an agent with persistent memory.',
+]
+SOBRE = [
+    ('now', 'Visão, a cognitive architecture with memory'),
+    ('goal', 'Relocate to the Netherlands / EU'),
+    ('beyond code', 'Late nights, rain, The Neighbourhood'),
+]
+
+
+def ilustracao(x, y, w, h, c):
+    """Floresta de Forks à noite, com névoa e chuva fina, recortada num painel."""
+    lx, ly = x + w * .7, y + h * .24
+    corpo = ('<defs><clipPath id="pc"><rect x="%d" y="%d" width="%d" height="%d" rx="8"/></clipPath>'
+             '<linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>'
+             '<radialGradient id="lua" cx="%.1f" cy="%.1f" r="80" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>'
+             '<filter id="nv" x="-20%%" y="-200%%" width="140%%" height="500%%"><feGaussianBlur stdDeviation="7"/></filter>'
+             '<pattern id="gotas" width="60" height="90" patternUnits="userSpaceOnUse">'
+             '<path stroke="rgba(%s,.22)" stroke-width=".8" d="M10 6l-2 11M38 40l-2 13M52 70l-2 10M24 76l-2 9"/></pattern></defs>'
+             ) % (x, y, w, h, c['ceu'][0], c['ceu'][1], lx, ly, c['lua'], c['lua'], c['chuva'])
+    p1, p2, p3 = c['pinheiros']
+    mata = floresta(11, [(p1, 150, 50, 90, 9, 230), (p2, 175, 60, 105, 12, 230), (p3, 205, 70, 120, 16, 230)], w)
+    corpo += '<g clip-path="url(#pc)"><rect x="%d" y="%d" width="%d" height="%d" fill="url(#ceu)"/>' % (x, y, w, h)
+    corpo += '<circle cx="%.1f" cy="%.1f" r="80" fill="url(#lua)"/>' % (lx, ly)
+    corpo += '<circle cx="%.1f" cy="%.1f" r="12" fill="%s" opacity=".5"/>' % (lx, ly, c['luaz'])
+    corpo += '<g transform="translate(%d %d)">%s</g>' % (x, y + h - 215, mata)
+    corpo += '<rect class="nv" x="%d" y="%d" width="%d" height="16" rx="8" fill="%s" opacity="%s" filter="url(#nv)"/>' % (x - 20, y + h - 70, w + 40, c['nevoa'], c['nevoa_a'])
+    corpo += '<g class="chuva"><rect x="%d" y="%d" width="%d" height="%d" fill="url(#gotas)"/></g></g>' % (x, y - 90, w + 30, h + 90)
+    corpo += '<rect x="%.1f" y="%.1f" width="%d" height="%d" rx="8" fill="none" stroke="%s"/>' % (x + .5, y + .5, w - 1, h - 1, c['linha'])
+    return corpo
+
+
+def sobre(t):
     c = TEMAS[t]
-    corpo = (
-        '<defs><radialGradient id="vl" cx="300" cy="0" r="520" gradientUnits="userSpaceOnUse">'
-        '<stop offset="0" stop-color="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient></defs>'
-    ) % (c['forte'], c['forte'])
-    corpo += '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
-    corpo += '<rect x="1" y="1" width="760" height="%d" fill="url(#vl)" opacity=".5"/>' % (H - 2)
-    # cantos Deco em estanho
-    k, m = 30, 14
-    for (x, y, sx, sy) in [(m, m, 1, 1), (W - m, m, -1, 1), (m, H - m, 1, -1), (W - m, H - m, -1, -1)]:
-        corpo += '<path d="M%d %dV%dH%d M%d %dV%dH%d" fill="none" stroke="%s"/>' % (
-            x, y + sy * k, y, x + sx * k, x + sx * 6, y + sy * (k - 10), y + sy * 6, x + sx * (k - 10), c['estanho_linha'])
-    corpo += '<path d="M764.5 40V360" stroke="%s"/>' % c['linha']
-    # esquerda
-    corpo += rotulo('Featured · Personal research · 2026', 64, 76, c['estanho'])
-    corpo += txt(SERIF, 'Visão', 132, 58, 196, c['tinta'], -.03)
-    px = 58 + SERIF.largura('Visão', 132, -.03) + 2
-    corpo += '<circle cx="%.1f" cy="187" r="16" fill="%s" opacity=".6" filter="url(#vg)"/>' % (px + 10, c['brilho'])
-    corpo += txt(SERIF, '.', 132, px, 196, c['lanterna'])
-    corpo += '<defs><filter id="vg" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="8"/></filter></defs>'
-    corpo += rotulo('Trace · Introspection', 64, 252, c['estanho'], 12)
-    corpo += txt(ITALICO, 'An agent born without a name', 34, 64, 296, c['tinta'])
-    corpo += txt(ITALICO, 'that decides who it is.', 34, 64, 336, c['tinta'])
-    # direita: roteiro
-    x0 = 820
-    corpo += '<circle cx="%d" cy="72" r="4" fill="%s"/>' % (x0 + 4, c['lanterna'])
-    corpo += rotulo('Cognitive architecture', x0 + 18, 76, c['suave'], 12)
-    corpo += rotulo('Roadmap · phases 0–9', x0, 128, c['fraca'], 12)
-    feitas, construidas = {0, 1, 3, 4, 6}, {2, 5, 9}
-    bw, gap, by, bh = 36, 5.5, 146, 60
-    for i in range(10):
-        x = x0 + i * (bw + gap)
-        if i in feitas:
-            corpo += '<rect x="%.1f" y="%d" width="%d" height="%d" fill="%s"/>' % (x, by, bw, bh, c['tinta'])
-            cor = c['sobre_tinta']
-        elif i in construidas:
-            corpo += '<rect x="%.1f" y="%d" width="%d" height="%d" fill="%s" stroke="%s"/>' % (x + .5, by + .5, bw - 1, bh - 1, c['luz'], c['lanterna'])
-            cor = c['lanterna']
-        else:
-            corpo += '<rect x="%.1f" y="%d" width="%d" height="%d" fill="none" stroke="%s"/>' % (x + .5, by + .5, bw - 1, bh - 1, c['forte'])
-            cor = c['fraca']
-        corpo += txt(MONO, str(i), 16, x + bw / 2, by + bh - 9, cor, ancora='middle')
-    ly = 240
-    lx = x0
-    for nome, tipo in [('Done', 'ok'), ('Built', 'feita'), ('Planned', 'plan')]:
-        if tipo == 'ok':
-            corpo += '<rect x="%d" y="%d" width="9" height="9" fill="%s"/>' % (lx, ly - 9, c['tinta'])
-        elif tipo == 'feita':
-            corpo += '<rect x="%.1f" y="%.1f" width="8" height="8" fill="none" stroke="%s"/>' % (lx + .5, ly - 8.5, c['lanterna'])
-        else:
-            corpo += '<rect x="%.1f" y="%.1f" width="8" height="8" fill="none" stroke="%s"/>' % (lx + .5, ly - 8.5, c['forte'])
-        corpo += rotulo(nome, lx + 16, ly, c['fraca'], 11)
-        lx += 16 + MONO_M.largura(nome.upper(), 11 * ROT, .08) + 30
-    corpo += '<path d="M%d 278.5H1216" stroke="%s"/>' % (x0, c['linha'])
-    corpo += rotulo('Python 3.12 · FastAPI · PostgreSQL', x0, 312, c['suave'], 12)
-    corpo += rotulo('React · Docker', x0, 336, c['suave'], 12)
-    salvar('visao', t, svg(W, H, 'Visão. Personal research, 2026. Trace: introspection. An agent born without a name that decides who it is. Phases 0 to 6 and 9 built.', corpo))
+    col = 470
+    y = 92
+    corpo_txt = ''
+    for par in SOBRE_TEXTO:
+        for linha in quebra(SANS, par, 14.5, col - M):
+            corpo_txt += txt(SANS, linha, 14.5, M, y, c['suave'])
+            y += 23
+        y += 12
+    y += 4
+    for k, v in SOBRE:
+        corpo_txt += '<path d="M%d %.1fH%d" stroke="%s"/>' % (M, y - 18.5, col, c['linha'])
+        corpo_txt += mono('→ ' + k, M, y + 2, c['estanho'], 10.5)
+        corpo_txt += txt(SANS, v, 13.5, M + 128, y + 3, c['tinta'])
+        y += 34
+    corpo_txt += '<path d="M%d %.1fH%d" stroke="%s"/>' % (M, y - 18.5, col, c['linha'])
+    H = int(y + 10)
+    estilo = ('.chuva{animation:cai 1.3s linear infinite}@keyframes cai{to{transform:translate(-6px,90px)}}'
+              '.nv{animation:deriva 30s ease-in-out infinite alternate}@keyframes deriva{to{transform:translateX(-40px)}}') + MOVIMENTO
+    corpo = cartao(H, c) + cabecalho('01', 'About', 50, c) + corpo_txt
+    corpo += ilustracao(col + 34, M, W - M - col - 34, H - 2 * M, c)
+    alt = 'About. ' + ' '.join(SOBRE_TEXTO) + ' ' + ' '.join('%s: %s.' % kv for kv in SOBRE)
+    salvar('sobre', t, svg(H, alt, corpo, estilo))
 
 
-# ─────────── Rastros (faixas) ───────────
-FAIXAS = [
-    ('01', 'auris', 'AURIS', 'Desktop · Audio + LLM', 'Listening',
-     'Listening without intruding: no bot joins the room.', 'Electron · React · Python · faster-whisper · Claude', False),
-    ('02', 'gameboy', 'gameboy', 'Emulator · Go', 'Nostalgia & precision',
-     'Going back to childhood, but demanding 498 out of 500.', 'Go · Ebitengine · MBC1/2/3/5 · Blargg', False),
-    ('03', 'thoth', 'Thoth AI', 'SaaS · LLM', 'Knowledge',
-     'Only claim what has a source.', 'Next.js 14 · FastAPI · PostgreSQL · Stripe', False),
-    ('04', 'myblock', 'MyBlock', 'Web3 · Real estate', 'Autonomy',
-     'Rules that enforce themselves, with nobody chasing.', 'Solidity · Hardhat · Node · Vue 3 · Ethers.js', False),
-    ('05', 'webhook', 'webhook-go', 'Infra · Go', 'Care',
-     'Nothing entrusted to me gets lost.', 'Go · net/http · PostgreSQL · pgx', True),
+# ─────────── 3. Rastros ───────────
+RASTROS = [
+    ('Visão', 'An agent born without a name that decides who it is.', 'Research · phases 0–6, 9', True),
+    ('AURIS', 'Listening without intruding: no bot joins the room.', 'Desktop · audio + LLM', False),
+    ('gameboy', 'Going back to childhood, demanding 498 out of 500.', 'Emulator · Go', False),
+    ('Thoth AI', 'Only claim what has a source.', 'SaaS · RAG', False),
+    ('MyBlock', 'Rules that enforce themselves, with nobody chasing.', 'Web3 · Solidity', False),
+    ('webhook-go', 'Nothing entrusted to me gets lost.', 'Infra · Go', True),
 ]
 
 
 def rastros(t):
-    """Os cinco rastros numa imagem só: o traço primeiro, depois a tecnologia."""
-    W, topo, lh = 1280, 84, 96
-    H = topo + lh * len(FAIXAS) + 14
     c = TEMAS[t]
-    corpo = '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
-    corpo += leque(48, 26, 44, c['estanho'])
-    corpo += rotulo('Traces · side A', 108, 52, c['estanho'], 13)
-    corpo += rotulo('The trait first, then the tech', 1232, 52, c['fraca'], 12, 'end')
-    for i, (n, chave, nome, tipo, traco, frase, stack, andamento) in enumerate(FAIXAS):
-        y = topo + i * lh
-        corpo += '<path d="M48 %.1fH1232" stroke="%s"/>' % (y + .5, c['linha'])
-        corpo += txt(SERIF, n, 44, 46, y + 62, c['estanho'], -.02)
-        corpo += rotulo(traco, 132, y + 32, c['estanho'], 11)
-        tam = 34
-        while ITALICO.largura(frase, tam) > 780:
-            tam -= 1
-        corpo += txt(ITALICO, frase, tam, 132, y + 72, c['tinta'])
-        corpo += txt(SERIF, nome, 36, 1232, y + 48, c['tinta'], -.01, 'end')
-        corpo += rotulo(tipo, 1232, y + 78, c['fraca'], 11, 'end')
-        if andamento:
-            corpo += '<circle cx="%.1f" cy="%d" r="5" fill="%s"/>' % (1232 - SERIF.largura(nome, 36, -.01) - 16, y + 36, c['lanterna'])
-    alt = 'Traces. ' + ' '.join('%s %s: %s' % (n, nome, frase) for n, _, nome, _, _, frase, _, _ in FAIXAS)
-    salvar('rastros', t, svg(W, H, alt, corpo))
-
-
-# ─────────── Contato: o quarto ───────────
-def quarto(t):
-    W, H = 1280, 260
-    c = TEMAS[t]
-    corpo = (
-        '<defs><linearGradient id="qf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%s"/>'
-        '<stop offset=".55" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>'
-        '<linearGradient id="ql" x1="0" x2="1"><stop offset="0" stop-color="%s"/><stop offset=".2" stop-color="%s" stop-opacity="0"/>'
-        '<stop offset=".8" stop-color="%s" stop-opacity="0"/><stop offset="1" stop-color="%s"/></linearGradient>'
-        '<filter id="qb" x="-50%%" y="-100%%" width="200%%" height="300%%"><feGaussianBlur stdDeviation="22"/></filter></defs>'
-    ) % (c['fundo'], c['elev'], c['fundo'], c['luz'], c['luz'], c['luz'], c['luz'])
-    corpo += '<rect width="%d" height="%d" rx="6" fill="url(#qf)"/>' % (W, H)
-    corpo += '<rect width="%d" height="%d" rx="6" fill="url(#ql)" opacity=".4"/>' % (W, H)
-    corpo += leque(595, 22, 90, c['estanho'])
-    tam = 104
-    a, b = "Let’s", 'build.'
-    wa, wb = SERIF.largura(a, tam, -.03), ITALICO.largura(b, tam, -.03)
-    x = 640 - (wa + 24 + wb) / 2
-    corpo += '<ellipse cx="640" cy="130" rx="280" ry="36" fill="%s" filter="url(#qb)"/>' % c['luz']
-    corpo += txt(SERIF, a, tam, x, 160, c['tinta'], -.03)
-    corpo += txt(ITALICO, b, tam, x + wa + 24, 160, c['suave'], -.03)
-    corpo += txt(ITALICO, 'Got a system that needs to run without supervision? I want to hear about it.', 30, 640, 212, c['suave'], ancora='middle')
-    st = 'Native Portuguese · fluent English · open to relocation'
-    sw = MONO_M.largura(st.upper(), 11 * ROT, .08)
-    corpo += '<circle cx="%.1f" cy="237" r="4" fill="%s"/>' % (640 - sw / 2 - 6, c['lanterna'])
-    corpo += rotulo(st, 640 + 8, 242, c['fraca'], 11, 'middle')
-    salvar('contato', t, svg(W, H, "Let's build. Got a system that needs to run without supervision? I want to hear about it.", corpo))
-
-
-# ─────────── Sobre: linhas de rótulo e valor ───────────
-SOBRE = [
-    ('Now', 'Visão, a cognitive architecture with memory'),
-    ('At work', 'APIs, webhooks into ERPs and LLM automations'),
-    ('Goal', 'Systems that run unsupervised, from the Netherlands'),
-    ('Beyond code', 'Late nights, rain, The Neighbourhood on repeat'),
-]
-
-
-def sobre(t):
-    W, lh, topo = 1280, 66, 96
-    H = topo + lh * len(SOBRE) + 26
-    c = TEMAS[t]
-    corpo = '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
-    corpo += leque(48, 30, 44, c['estanho'])
-    corpo += rotulo('About', 108, 56, c['estanho'], 13)
-    for i, (k, v) in enumerate(SOBRE):
-        y = topo + i * lh
-        corpo += '<path d="M48 %.1fH1232" stroke="%s"/>' % (y + .5, c['linha'])
-        corpo += rotulo('→ ' + k, 48, y + 42, c['suave'], 12)
-        corpo += txt(ITALICO, v, 32, 380, y + 45, c['tinta'])
-    alt = 'About. ' + ' '.join('%s: %s.' % kv for kv in SOBRE)
-    salvar('sobre', t, svg(W, H, alt, corpo))
+    topo_, lh = 76, 44
+    H = topo_ + lh * len(RASTROS) + 14
+    corpo = cartao(H, c) + cabecalho('02', 'Traces', 50, c, 'The trait first, then the tech')
+    for i, (nome, frase, tipo, ativo) in enumerate(RASTROS):
+        y = topo_ + i * lh
+        corpo += '<path d="M%d %.1fH%d" stroke="%s"/>' % (M, y + .5, W - M, c['linha'])
+        b = y + 28
+        corpo += mono('%02d' % (i + 1), M, b, c['fraca'], 10.5)
+        corpo += txt(SANS_M, nome, 14.5, M + 34, b, c['tinta'])
+        if ativo:
+            corpo += '<circle cx="%.1f" cy="%.1f" r="3" fill="%s"/>' % (M + 34 + SANS_M.largura(nome, 14.5) + 9, b - 4.5, c['lanterna'])
+        limite = W - M - larg_mono(tipo, 10) - 24 - 176
+        tam = 16.5
+        while ITALICO.largura(frase, tam) > limite:
+            tam -= .5
+        corpo += txt(ITALICO, frase, tam, M + 176, b, c['suave'])
+        corpo += mono(tipo, W - M, b, c['fraca'], 10, 'end')
+    alt = 'Traces. ' + ' '.join('%s: %s' % (n, f) for n, f, _, _ in RASTROS)
+    salvar('rastros', t, svg(H, alt, corpo))
 
 
 def main():
     for tema in TEMAS:
-        banner(tema, 'Allison Freitas. Software engineer, full-stack, backend and AI. Systems that keep running when nobody is watching.')
+        topo(tema)
         sobre(tema)
-        visao(tema)
         rastros(tema)
-        quarto(tema)
     print('ok')
 
 

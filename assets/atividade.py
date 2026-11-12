@@ -12,7 +12,7 @@ import os
 import urllib.error
 import urllib.request
 
-from gerar import ITALICO, MONO, MONO_M, ROT, SERIF, TEMAS, rotulo, salvar, svg, txt
+from gerar import M, SANS, SANS_M, TEMAS, W, cabecalho, cartao, larg_mono, mono, salvar, svg, txt
 
 USUARIO = os.environ.get('RASTROS_USUARIO', 'Allisonfreittass')
 MESES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -83,61 +83,62 @@ def plural(n, um, varios):
 
 
 # ─────────── Gráfico de contribuições ───────────
+def celula(x, y, lado, nivel, c):
+    if nivel == 0:
+        return '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s"/>' % (x, y, lado, lado, c['hover'])
+    op = {1: .3, 2: .5, 3: .75, 4: 1}[nivel]
+    return '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s" opacity="%s"/>' % (x, y, lado, lado, c['estanho'], op)
+
+
 def grafico(t, total, dias):
-    W, H = 1280, 350
+    H = 292
     c = TEMAS[t]
     ativos = sum(1 for _, n, _ in dias if n)
     pico = max(dias, key=lambda x: x[1])
-    corpo = '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
-    corpo += rotulo('Last 12 months · %d %s · %d active %s' % (
-        total, plural(total, 'contribution', 'contributions'), ativos, plural(ativos, 'day', 'days')), 48, 58, c['estanho'], 12)
-    # legenda
-    x = 1232
-    corpo += rotulo('More', x, 58, c['fraca'], 11, 'end')
-    x -= MONO_M.largura('MORE', 11 * ROT, .08) + 12
-    for nivel in (4, 3, 2, 1, 0):
-        x -= 16
-        corpo += celula(x, 45, 14, nivel, c)
-        x -= 5
-    corpo += rotulo('Less', x - 8, 58, c['fraca'], 11, 'end')
+    atual, maior = sequencias(dias)
+    corpo = cartao(H, c) + cabecalho('03', 'Rhythm', 50, c)
+    corpo += mono('%d %s · %d active %s · last 12 months' % (
+        total, plural(total, 'contribution', 'contributions'), ativos, plural(ativos, 'day', 'days')),
+        W - M, 50, c['fraca'], 10.5, 'end')
     # grade: uma coluna por semana, domingo em cima
-    x0, y0, passo, lado = 48, 92, 22, 17
+    semanas = ((dias[-1][0] - dias[0][0]).days + (dias[0][0].weekday() + 1) % 7) // 7 + 1
+    passo = (W - 2 * M + 3) / semanas
+    lado = passo - 3
+    x0, y0 = M, 78
     inicio = dias[0][0] - dt.timedelta(days=(dias[0][0].weekday() + 1) % 7)
-    ultimo_mes = None
+    ultimo = None
     for d, n, nivel in dias:
-        col = (d - inicio).days // 7
-        lin = (d.weekday() + 1) % 7
+        col, lin = (d - inicio).days // 7, (d.weekday() + 1) % 7
         x, y = x0 + col * passo, y0 + lin * passo
         if (d, n) == pico[:2] and n:
-            corpo += '<rect x="%.1f" y="%.1f" width="%d" height="%d" rx="4" fill="%s" opacity=".5" filter="url(#g)"/>' % (x - 3, y - 3, lado + 6, lado + 6, c['brilho'])
-            corpo += '<rect x="%d" y="%d" width="%d" height="%d" rx="3" fill="%s"/>' % (x, y, lado, lado, c['lanterna'])
+            corpo += '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s"/>' % (x, y, lado, lado, c['lanterna'])
         else:
             corpo += celula(x, y, lado, nivel, c)
-        if d.day <= 7 and lin == 0 and d.month != ultimo_mes:
-            ultimo_mes = d.month
-            if col < 52:
-                corpo += rotulo(MESES[d.month - 1], x, y0 + 7 * passo + 20, c['fraca'], 11)
-    corpo = '<defs><filter id="g" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter></defs>' + corpo
-    atual, maior = sequencias(dias)
-    x = 48
-    for rot, val in [('Current streak', '%d %s' % (atual, plural(atual, 'day', 'days'))),
-                     ('Longest', '%d %s' % (maior, plural(maior, 'day', 'days'))),
-                     ('Busiest', '%d on %s %d' % (pico[1], MESES[pico[0].month - 1], pico[0].day))]:
-        corpo += rotulo(rot, x, 318, c['fraca'], 11)
-        x += MONO_M.largura(rot.upper(), 11 * ROT, .08) + 12
-        corpo += txt(ITALICO, val, 26, x, 320, c['lanterna'] if rot == 'Busiest' else c['tinta'])
-        x += ITALICO.largura(val, 26) + 40
-    corpo += rotulo('Updated %s' % dias[-1][0].isoformat(), 1232, 318, c['fraca'], 11, 'end')
-    alt = '%d contributions and %d active days in the last 12 months. Busiest day: %s, with %d.' % (
-        total, ativos, pico[0].isoformat(), pico[1])
-    salvar('atividade', t, svg(W, H, alt, corpo))
-
-
-def celula(x, y, lado, nivel, c):
-    if nivel == 0:
-        return '<rect x="%.1f" y="%.1f" width="%d" height="%d" rx="3" fill="%s"/>' % (x, y, lado, lado, c['hover'])
-    op = {1: .3, 2: .5, 3: .75, 4: 1}[nivel]
-    return '<rect x="%.1f" y="%.1f" width="%d" height="%d" rx="3" fill="%s" opacity="%s"/>' % (x, y, lado, lado, c['estanho'], op)
+        if d.day <= 7 and lin == 0 and d.month != ultimo:
+            ultimo = d.month
+            if col < semanas - 2:
+                corpo += mono(MESES[d.month - 1], x, y0 + 7 * passo + 16, c['fraca'], 9.5)
+    # rodapé: as sequências, e a legenda à direita
+    y = H - M + 2
+    x = M
+    for rot, val, destaque in [('Current streak', '%d %s' % (atual, plural(atual, 'day', 'days')), False),
+                               ('Longest', '%d %s' % (maior, plural(maior, 'day', 'days')), False),
+                               ('Busiest', '%d on %s %d' % (pico[1], MESES[pico[0].month - 1], pico[0].day), True)]:
+        corpo += mono(rot, x, y, c['fraca'], 9.5)
+        x += larg_mono(rot, 9.5) + 8
+        corpo += txt(SANS_M, val, 13, x, y + .5, c['lanterna'] if destaque else c['tinta'])
+        x += SANS_M.largura(val, 13) + 26
+    lx = W - M
+    corpo += mono('More', lx, y, c['fraca'], 9.5, 'end')
+    lx -= larg_mono('MORE', 9.5) + 8
+    for nivel in (4, 3, 2, 1, 0):
+        lx -= 10
+        corpo += celula(lx, y - 9, 10, nivel, c)
+        lx -= 3
+    corpo += mono('Less', lx - 5, y, c['fraca'], 9.5, 'end')
+    alt = '%d contributions and %d active days in the last 12 months. Current streak %d days, longest %d. Busiest day: %s, with %d.' % (
+        total, ativos, atual, maior, pico[0].isoformat(), pico[1])
+    salvar('atividade', t, svg(H, alt, corpo))
 
 
 if __name__ == '__main__':
