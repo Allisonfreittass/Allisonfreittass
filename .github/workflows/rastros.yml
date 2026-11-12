@@ -1,4 +1,4 @@
-# Redesenha o gráfico de contribuições e o ritmo do README (assets/atividade.py)
+# Redesenha o gráfico de contribuições do README (assets/atividade.py)
 # uma vez por dia, no visual Rastros. Só faz commit quando algo mudou.
 name: Rastros · atividade
 
@@ -35,7 +35,7 @@ jobs:
         run: python assets/atividade.py
       - name: Commit, se mudou
         run: |
-          git add assets/atividade-*.svg assets/ritmo-*.svg
+          git add assets/atividade-*.svg
           if git diff --cached --quiet; then echo "nada mudou"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

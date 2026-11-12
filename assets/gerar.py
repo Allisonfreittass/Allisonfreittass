@@ -237,43 +237,6 @@ def banner(t, nome):
     salvar('banner', t, svg(W, H, nome, '<clipPath id="q"><rect width="%d" height="%d" rx="6"/></clipPath><g clip-path="url(#q)">%s</g>' % (W, H, corpo), estilo))
 
 
-# ─────────── Números ───────────
-def numeros(t):
-    W, H = 1280, 150
-    c = TEMAS[t]
-    itens = [('2', '', 'REST APIs in production at F2'), ('6', '', 'Own systems, open source'),
-             ('498', '/500', 'SM83 opcodes validated'), ('2022', '', 'Coding since')]
-    corpo = '<path d="M0 .5H%dM0 %0.1fH%d" stroke="%s"/>' % (W, H - .5, W, c['forte'])
-    col = W / 4
-    for i, (n, suf, rot) in enumerate(itens):
-        x = i * col + (8 if i == 0 else 32)
-        if i:
-            corpo += '<path d="M%.1f 24V126" stroke="%s"/>' % (i * col + .5, c['linha'])
-        corpo += txt(SERIF, n, 76, x, 90, c['tinta'], -.02)
-        if suf:
-            corpo += txt(SERIF, suf, 34, x + SERIF.largura(n, 76, -.02) + 4, 90, c['fraca'])
-        corpo += rotulo(rot, x + 2, 126, c['fraca'], 11)
-    salvar('numeros', t, svg(W, H, '2 REST APIs in production at F2 · 6 own open-source systems · 498/500 SM83 opcodes validated · coding since 2022', corpo))
-
-
-# ─────────── Cabeçalho de seção ───────────
-def cabeca(t, chave, num, titulo, italico, direita):
-    W, H = 1280, 150
-    c = TEMAS[t]
-    corpo = leque(0, 6, 64, c['estanho'])
-    corpo += rotulo(num, 82, 36, c['estanho'], 13)
-    x = 0
-    if titulo:
-        corpo += txt(SERIF, titulo, 84, x - 3, 126, c['tinta'], -.02)
-        x += SERIF.largura(titulo, 84, -.02) + 14
-    if italico:
-        corpo += txt(ITALICO, italico, 84, x - 3, 126, c['suave'], -.02)
-    if direita:
-        corpo += rotulo(direita, W, 122, c['fraca'], 12, 'end')
-    corpo += '<path d="M0 %.1fH%d" stroke="%s"/>' % (H - .5, W, c['linha'])
-    salvar('titulo-' + chave, t, svg(W, H, (titulo + ' ' + italico).strip(), corpo))
-
-
 # ─────────── Visão, na moldura Deco ───────────
 def visao(t):
     W, H = 1280, 400
@@ -351,59 +314,58 @@ FAIXAS = [
 ]
 
 
-def faixa(t, f):
-    n, chave, nome, tipo, traco, frase, stack, andamento = f
-    W, H = 1280, 236
+def rastros(t):
+    """Os cinco rastros numa imagem só: o traço primeiro, depois a tecnologia."""
+    W, topo, lh = 1280, 84, 96
+    H = topo + lh * len(FAIXAS) + 14
     c = TEMAS[t]
     corpo = '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
-    corpo += txt(SERIF, n, 64, 44, 104, c['estanho'], -.02)
-    x = 168
-    corpo += rotulo('Trace · ' + traco, x, 62, c['estanho'], 13)
-    if andamento:
-        rx = 1236
-        corpo += rotulo('In progress', rx, 62, c['suave'], 12, 'end')
-        corpo += '<circle cx="%.1f" cy="57.5" r="4" fill="%s"/>' % (rx - MONO_M.largura('IN PROGRESS', 12 * ROT, .08) - 14, c['lanterna'])
-    corpo += txt(ITALICO, frase, 44, x, 124, c['tinta'], -.005)
-    corpo += '<path d="M%d 158.5H1236" stroke="%s"/>' % (x, c['linha'])
-    corpo += txt(SERIF, nome, 38, x, 205, c['tinta'], -.01)
-    nx = x + SERIF.largura(nome, 38, -.01) + 18
-    corpo += rotulo(tipo, nx, 202, c['fraca'], 12)
-    corpo += rotulo(stack, 1236, 202, c['suave'], 12, 'end', MONO)
-    salvar('rastro-%s' % chave, t, svg(W, H, '%s %s. Trace: %s. %s %s' % (n, nome, traco.lower(), frase, stack), corpo))
+    corpo += leque(48, 26, 44, c['estanho'])
+    corpo += rotulo('Traces · side A', 108, 52, c['estanho'], 13)
+    corpo += rotulo('The trait first, then the tech', 1232, 52, c['fraca'], 12, 'end')
+    for i, (n, chave, nome, tipo, traco, frase, stack, andamento) in enumerate(FAIXAS):
+        y = topo + i * lh
+        corpo += '<path d="M48 %.1fH1232" stroke="%s"/>' % (y + .5, c['linha'])
+        corpo += txt(SERIF, n, 44, 46, y + 62, c['estanho'], -.02)
+        corpo += rotulo(traco, 132, y + 32, c['estanho'], 11)
+        tam = 34
+        while ITALICO.largura(frase, tam) > 780:
+            tam -= 1
+        corpo += txt(ITALICO, frase, tam, 132, y + 72, c['tinta'])
+        corpo += txt(SERIF, nome, 36, 1232, y + 48, c['tinta'], -.01, 'end')
+        corpo += rotulo(tipo, 1232, y + 78, c['fraca'], 11, 'end')
+        if andamento:
+            corpo += '<circle cx="%.1f" cy="%d" r="5" fill="%s"/>' % (1232 - SERIF.largura(nome, 36, -.01) - 16, y + 36, c['lanterna'])
+    alt = 'Traces. ' + ' '.join('%s %s: %s' % (n, nome, frase) for n, _, nome, _, _, frase, _, _ in FAIXAS)
+    salvar('rastros', t, svg(W, H, alt, corpo))
 
 
 # ─────────── Contato: o quarto ───────────
 def quarto(t):
-    W, H = 1280, 400
+    W, H = 1280, 260
     c = TEMAS[t]
     corpo = (
         '<defs><linearGradient id="qf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%s"/>'
         '<stop offset=".55" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>'
         '<linearGradient id="ql" x1="0" x2="1"><stop offset="0" stop-color="%s"/><stop offset=".2" stop-color="%s" stop-opacity="0"/>'
         '<stop offset=".8" stop-color="%s" stop-opacity="0"/><stop offset="1" stop-color="%s"/></linearGradient>'
-        '<radialGradient id="qa" cx="640" cy="80" r="200" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="%s"/>'
-        '<stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>'
         '<filter id="qb" x="-50%%" y="-100%%" width="200%%" height="300%%"><feGaussianBlur stdDeviation="22"/></filter></defs>'
-    ) % (c['fundo'], c['elev'], c['fundo'], c['luz'], c['luz'], c['luz'], c['luz'], c['estanho_linha'], c['estanho_linha'])
+    ) % (c['fundo'], c['elev'], c['fundo'], c['luz'], c['luz'], c['luz'], c['luz'])
     corpo += '<rect width="%d" height="%d" rx="6" fill="url(#qf)"/>' % (W, H)
     corpo += '<rect width="%d" height="%d" rx="6" fill="url(#ql)" opacity=".4"/>' % (W, H)
-    corpo += '<circle cx="640" cy="80" r="200" fill="url(#qa)" opacity=".7"/>'
-    corpo += leque(560, 36, 160, c['estanho'])
-    # status
-    st = 'Native Portuguese · fluent English'
-    sw = MONO_M.largura(st.upper(), 12 * ROT, .08)
-    corpo += '<circle cx="%.1f" cy="150" r="4" fill="%s"/>' % (640 - sw / 2 - 10, c['lanterna'])
-    corpo += rotulo(st, 640 + 8, 154, c['suave'], 12, 'middle')
-    # Let's build.
-    tam = 118
+    corpo += leque(595, 22, 90, c['estanho'])
+    tam = 104
     a, b = "Let’s", 'build.'
     wa, wb = SERIF.largura(a, tam, -.03), ITALICO.largura(b, tam, -.03)
-    x = 640 - (wa + 26 + wb) / 2
-    corpo += '<ellipse cx="640" cy="250" rx="300" ry="40" fill="%s" filter="url(#qb)"/>' % c['luz']
-    corpo += txt(SERIF, a, tam, x, 272, c['tinta'], -.03)
-    corpo += txt(ITALICO, b, tam, x + wa + 26, 272, c['suave'], -.03)
-    corpo += txt(ITALICO, 'Got a system that needs to run without supervision? I want to hear about it.', 30, 640, 330, c['suave'], ancora='middle')
-    corpo += rotulo('Open to relocation · Netherlands · European Union', 640, 372, c['fraca'], 11, 'middle')
+    x = 640 - (wa + 24 + wb) / 2
+    corpo += '<ellipse cx="640" cy="130" rx="280" ry="36" fill="%s" filter="url(#qb)"/>' % c['luz']
+    corpo += txt(SERIF, a, tam, x, 160, c['tinta'], -.03)
+    corpo += txt(ITALICO, b, tam, x + wa + 24, 160, c['suave'], -.03)
+    corpo += txt(ITALICO, 'Got a system that needs to run without supervision? I want to hear about it.', 30, 640, 212, c['suave'], ancora='middle')
+    st = 'Native Portuguese · fluent English · open to relocation'
+    sw = MONO_M.largura(st.upper(), 11 * ROT, .08)
+    corpo += '<circle cx="%.1f" cy="237" r="4" fill="%s"/>' % (640 - sw / 2 - 6, c['lanterna'])
+    corpo += rotulo(st, 640 + 8, 242, c['fraca'], 11, 'middle')
     salvar('contato', t, svg(W, H, "Let's build. Got a system that needs to run without supervision? I want to hear about it.", corpo))
 
 
@@ -435,15 +397,9 @@ def sobre(t):
 def main():
     for tema in TEMAS:
         banner(tema, 'Allison Freitas. Software engineer, full-stack, backend and AI. Systems that keep running when nobody is watching.')
-        numeros(tema)
         sobre(tema)
-        cabeca(tema, 'visao', '01 — Featured', '', 'Featured', '')
-        cabeca(tema, 'rastros', '02 — Traces · side A', 'Traces', '', '05 tracks')
-        cabeca(tema, 'ritmo', '03 — Rhythm', 'Rhythm', '', 'Updated daily')
-        cabeca(tema, 'percurso', '04 — Path', 'Path', '', 'Mar 2025 — now')
         visao(tema)
-        for f in FAIXAS:
-            faixa(tema, f)
+        rastros(tema)
         quarto(tema)
     print('ok')
 

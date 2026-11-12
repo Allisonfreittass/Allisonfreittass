@@ -1,7 +1,7 @@
 """Gráfico de contribuições e ritmo, no sistema Rastros.
 
 Lê o calendário de contribuições dos últimos 12 meses pela API GraphQL do GitHub
-e escreve atividade-*.svg e ritmo-*.svg (noite e neblina). Roda todo dia pela
+e escreve atividade-*.svg (noite e neblina), com as sequências no rodapé. Roda todo dia pela
 Action .github/workflows/rastros.yml; à mão:
 
     GITHUB_TOKEN=$(gh auth token) python3 assets/atividade.py
@@ -84,7 +84,7 @@ def plural(n, um, varios):
 
 # ─────────── Gráfico de contribuições ───────────
 def grafico(t, total, dias):
-    W, H = 1280, 336
+    W, H = 1280, 350
     c = TEMAS[t]
     ativos = sum(1 for _, n, _ in dias if n)
     pico = max(dias, key=lambda x: x[1])
@@ -118,7 +118,16 @@ def grafico(t, total, dias):
             if col < 52:
                 corpo += rotulo(MESES[d.month - 1], x, y0 + 7 * passo + 20, c['fraca'], 11)
     corpo = '<defs><filter id="g" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter></defs>' + corpo
-    corpo += rotulo('Busiest day in red · updated %s' % dias[-1][0].isoformat(), 1232, 314, c['fraca'], 11, 'end')
+    atual, maior = sequencias(dias)
+    x = 48
+    for rot, val in [('Current streak', '%d %s' % (atual, plural(atual, 'day', 'days'))),
+                     ('Longest', '%d %s' % (maior, plural(maior, 'day', 'days'))),
+                     ('Busiest', '%d on %s %d' % (pico[1], MESES[pico[0].month - 1], pico[0].day))]:
+        corpo += rotulo(rot, x, 318, c['fraca'], 11)
+        x += MONO_M.largura(rot.upper(), 11 * ROT, .08) + 12
+        corpo += txt(ITALICO, val, 26, x, 320, c['lanterna'] if rot == 'Busiest' else c['tinta'])
+        x += ITALICO.largura(val, 26) + 40
+    corpo += rotulo('Updated %s' % dias[-1][0].isoformat(), 1232, 318, c['fraca'], 11, 'end')
     alt = '%d contributions and %d active days in the last 12 months. Busiest day: %s, with %d.' % (
         total, ativos, pico[0].isoformat(), pico[1])
     salvar('atividade', t, svg(W, H, alt, corpo))
@@ -131,54 +140,8 @@ def celula(x, y, lado, nivel, c):
     return '<rect x="%.1f" y="%.1f" width="%d" height="%d" rx="3" fill="%s" opacity="%s"/>' % (x, y, lado, lado, c['estanho'], op)
 
 
-# ─────────── Ritmo: sequências e meses ───────────
-def ritmo(t, total, dias):
-    W, H = 1280, 380
-    c = TEMAS[t]
-    atual, maior = sequencias(dias)
-    ativos = sum(1 for _, n, _ in dias if n)
-    pico = max(dias, key=lambda x: x[1])
-    meses = por_mes(dias)
-    corpo = '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
-    stats = [
-        ('Current streak', str(atual), plural(atual, ' day', ' days')),
-        ('Longest streak', str(maior), plural(maior, ' day', ' days')),
-        ('Active days', str(ativos), ''),
-        ('Busiest day', str(pico[1]), ' on %s %d' % (MESES[pico[0].month - 1], pico[0].day)),
-    ]
-    for i, (rot, num, suf) in enumerate(stats):
-        x, y = 48 + (i % 2) * 220, 62 + (i // 2) * 160
-        corpo += rotulo(rot, x, y, c['fraca'], 11)
-        cor = c['lanterna'] if i == 0 and atual else c['tinta']
-        corpo += txt(SERIF, num, 78, x - 2, y + 82, cor, -.02)
-        if suf:
-            corpo += txt(ITALICO, suf, 24, x + SERIF.largura(num, 78, -.02) + 2, y + 82, c['suave'])
-    corpo += '<path d="M520.5 40V340" stroke="%s"/>' % c['linha']
-    # barras por mês
-    x0, x1, base, alto = 572, 1232, 300, 196
-    corpo += rotulo('Contributions per month', x0, 62, c['fraca'], 11)
-    mx = max(n for _, n in meses) or 1
-    passo = (x1 - x0) / 12
-    larg = passo * .62
-    corpo += '<path d="M%d %.1fH%d" stroke="%s"/>' % (x0, base + .5, x1, c['forte'])
-    for i, ((a, m), n) in enumerate(meses):
-        x = x0 + i * passo + (passo - larg) / 2
-        h = alto * n / mx
-        if n:
-            destaque = n == mx
-            cor = c['lanterna'] if destaque else c['estanho']
-            op = 1 if destaque else .55
-            corpo += '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s" opacity="%s"/>' % (x, base - h, larg, h, cor, op)
-            corpo += txt(MONO, str(n), 15, x + larg / 2, base - h - 10, c['tinta'] if destaque else c['fraca'], ancora='middle')
-        corpo += rotulo(MESES[m - 1], x + larg / 2, base + 30, c['fraca'], 10, 'middle')
-    alt = 'Current streak %d days, longest %d, %d active days, busiest day %d contributions. Per month: %s.' % (
-        atual, maior, ativos, pico[1], ', '.join('%s %d' % (MESES[m - 1], n) for (a, m), n in meses))
-    salvar('ritmo', t, svg(W, H, alt, corpo))
-
-
 if __name__ == '__main__':
     total, dias = buscar()
     for tema in TEMAS:
         grafico(tema, total, dias)
-        ritmo(tema, total, dias)
     print('ok', total, len(dias))
