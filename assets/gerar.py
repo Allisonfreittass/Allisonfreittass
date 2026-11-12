@@ -4,9 +4,10 @@ Cada imagem sai em duas versões: -noite (escuro, padrão) e -neblina (claro).
 Todo texto vira contorno (path), então a Instrument Serif e a JetBrains Mono
 aparecem iguais no GitHub sem carregar fonte nenhuma.
 
-Uso:  python3 gerar.py <pasta-das-fontes>
-      (precisa de fonttools e uharfbuzz; fontes: InstrumentSerif-Regular/Italic,
-       JetBrainsMono-Regular/Medium .ttf)
+Uso:  pip install fonttools uharfbuzz
+      python3 assets/gerar.py        (imagens fixas)
+      python3 assets/atividade.py    (gráfico e ritmo; roda todo dia na Action)
+As fontes ficam em assets/fontes (SIL Open Font License, licenças ao lado).
 """
 import html
 import math
@@ -18,8 +19,8 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
 
-FONTES = sys.argv[1] if len(sys.argv) > 1 else 'fontes'
 SAIDA = os.path.dirname(os.path.abspath(__file__))
+FONTES = os.path.join(SAIDA, 'fontes')
 
 # ─────────── Tokens Rastros ───────────
 TEMAS = {
@@ -406,14 +407,46 @@ def quarto(t):
     salvar('contato', t, svg(W, H, "Let's build. Got a system that needs to run without supervision? I want to hear about it.", corpo))
 
 
-for tema in TEMAS:
-    banner(tema, 'Allison Freitas. Software engineer, full-stack, backend and AI. Systems that keep running when nobody is watching.')
-    numeros(tema)
-    cabeca(tema, 'visao', '01 — Featured', '', 'Featured', '')
-    cabeca(tema, 'rastros', '02 — Traces · side A', 'Traces', '', '05 tracks')
-    cabeca(tema, 'percurso', '03 — Path', 'Path', '', 'Mar 2025 — now')
-    visao(tema)
-    for f in FAIXAS:
-        faixa(tema, f)
-    quarto(tema)
-print('ok')
+# ─────────── Sobre: linhas de rótulo e valor ───────────
+SOBRE = [
+    ('Now', 'Visão, a cognitive architecture with memory'),
+    ('At work', 'APIs, webhooks into ERPs and LLM automations'),
+    ('Goal', 'Systems that run unsupervised, from the Netherlands'),
+    ('Beyond code', 'Late nights, rain, The Neighbourhood on repeat'),
+]
+
+
+def sobre(t):
+    W, lh, topo = 1280, 66, 96
+    H = topo + lh * len(SOBRE) + 26
+    c = TEMAS[t]
+    corpo = '<rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="%s" stroke="%s"/>' % (W - 1, H - 1, c['elev'], c['linha'])
+    corpo += leque(48, 30, 44, c['estanho'])
+    corpo += rotulo('About', 108, 56, c['estanho'], 13)
+    for i, (k, v) in enumerate(SOBRE):
+        y = topo + i * lh
+        corpo += '<path d="M48 %.1fH1232" stroke="%s"/>' % (y + .5, c['linha'])
+        corpo += rotulo('→ ' + k, 48, y + 42, c['suave'], 12)
+        corpo += txt(ITALICO, v, 32, 380, y + 45, c['tinta'])
+    alt = 'About. ' + ' '.join('%s: %s.' % kv for kv in SOBRE)
+    salvar('sobre', t, svg(W, H, alt, corpo))
+
+
+def main():
+    for tema in TEMAS:
+        banner(tema, 'Allison Freitas. Software engineer, full-stack, backend and AI. Systems that keep running when nobody is watching.')
+        numeros(tema)
+        sobre(tema)
+        cabeca(tema, 'visao', '01 — Featured', '', 'Featured', '')
+        cabeca(tema, 'rastros', '02 — Traces · side A', 'Traces', '', '05 tracks')
+        cabeca(tema, 'ritmo', '03 — Rhythm', 'Rhythm', '', 'Updated daily')
+        cabeca(tema, 'percurso', '04 — Path', 'Path', '', 'Mar 2025 — now')
+        visao(tema)
+        for f in FAIXAS:
+            faixa(tema, f)
+        quarto(tema)
+    print('ok')
+
+
+if __name__ == '__main__':
+    main()

@@ -10,6 +10,13 @@ I'm a full-stack engineer at **F2 Tecnologia**, mostly on the backend: public AP
 B.Sc. in Computer Science · native Portuguese, fluent English · **open to relocation, Netherlands / EU first.**
 
 <picture>
+  <source media="(prefers-color-scheme: light)" srcset="assets/sobre-neblina.svg">
+  <img src="assets/sobre-noite.svg" alt="About. Now: Visão, a cognitive architecture with memory. At work: APIs, webhooks into ERPs and LLM automations. Goal: systems that run unsupervised, from the Netherlands. Beyond code: late nights, rain, The Neighbourhood on repeat." width="100%">
+</picture>
+
+<br><br>
+
+<picture>
   <source media="(prefers-color-scheme: light)" srcset="assets/numeros-neblina.svg">
   <img src="assets/numeros-noite.svg" alt="2 REST APIs in production at F2 · 6 own open-source systems · 498/500 SM83 opcodes validated · coding since 2022" width="100%">
 </picture>
@@ -92,6 +99,23 @@ Rentals where the contract is the system: Solidity keeps the status, applies a 1
 
 A self-hosted webhook gateway. It accepts events from any source and writes the event and its pending delivery in the same transaction before answering 202, so nothing gets lost. Next up: the redelivery worker with scheduled retries.
 **[Code ↗](https://github.com/Allisonfreittass/webhook-go)**
+
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="assets/titulo-ritmo-neblina.svg">
+  <img src="assets/titulo-ritmo-noite.svg" alt="Rhythm" width="100%">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="assets/atividade-neblina.svg">
+  <img src="assets/atividade-noite.svg" alt="Contributions in the last 12 months, updated daily." width="100%">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="assets/ritmo-neblina.svg">
+  <img src="assets/ritmo-noite.svg" alt="Streaks, active days and contributions per month, updated daily." width="100%">
+</picture>
 
 <br>
 

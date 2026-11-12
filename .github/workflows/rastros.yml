@@ -1,0 +1,41 @@
+# Redesenha o gráfico de contribuições e o ritmo do README (assets/atividade.py)
+# uma vez por dia, no visual Rastros. Só faz commit quando algo mudou.
+name: Rastros · atividade
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["assets/*.py", ".github/workflows/rastros.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rastros-atividade
+  cancel-in-progress: false
+
+jobs:
+  atividade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install fonttools==4.* uharfbuzz==0.*
+      - name: Desenhar gráfico e ritmo
+        env:
+          # METRICS_TOKEN (se existir) conta também as contribuições privadas
+          GITHUB_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python assets/atividade.py
+      - name: Commit, se mudou
+        run: |
+          git add assets/atividade-*.svg assets/ritmo-*.svg
+          if git diff --cached --quiet; then echo "nada mudou"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: atualiza atividade do README"
+          git push
