@@ -1,4 +1,4 @@
-"""Gráfico de contribuições e ritmo, no sistema Rastros.
+"""Gráfico de contribuições e ritmo, no sistema Noite.
 
 Lê o calendário de contribuições dos últimos 12 meses pela API GraphQL do GitHub
 e escreve atividade-*.svg (noite e neblina), com as sequências no rodapé. Roda todo dia pela
@@ -12,7 +12,7 @@ import os
 import urllib.error
 import urllib.request
 
-from gerar import M, SANS, SANS_M, TEMAS, W, cabecalho, cartao, larg_mono, mono, salvar, svg, txt
+from gerar import M, SANS, SANS_M, TEMAS, W, cabecalho, cartao, larg_mono, mono, perola, perola_defs, salvar, svg, txt
 
 USUARIO = os.environ.get('RASTROS_USUARIO', 'Allisonfreittass')
 MESES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -87,7 +87,7 @@ def celula(x, y, lado, nivel, c):
     if nivel == 0:
         return '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s"/>' % (x, y, lado, lado, c['hover'])
     op = {1: .3, 2: .5, 3: .75, 4: 1}[nivel]
-    return '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s" opacity="%s"/>' % (x, y, lado, lado, c['estanho'], op)
+    return '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s" opacity="%s"/>' % (x, y, lado, lado, c['latao'], op)
 
 
 def grafico(t, total, dias):
@@ -96,7 +96,7 @@ def grafico(t, total, dias):
     ativos = sum(1 for _, n, _ in dias if n)
     pico = max(dias, key=lambda x: x[1])
     atual, maior = sequencias(dias)
-    corpo = cartao(H, c) + cabecalho('03', 'Rhythm', 50, c)
+    corpo = cartao(H, c) + '<defs>%s</defs>' % perola_defs(c) + cabecalho('03', 'Rhythm', 50, c)
     corpo += mono('%d %s · %d active %s · last 12 months' % (
         total, plural(total, 'contribution', 'contributions'), ativos, plural(ativos, 'day', 'days')),
         W - M, 50, c['fraca'], 10.5, 'end')
@@ -111,7 +111,8 @@ def grafico(t, total, dias):
         col, lin = (d - inicio).days // 7, (d.weekday() + 1) % 7
         x, y = x0 + col * passo, y0 + lin * passo
         if (d, n) == pico[:2] and n:
-            corpo += '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" fill="%s"/>' % (x, y, lado, lado, c['lanterna'])
+            # o dia mais intenso vira uma pérola
+            corpo += perola(x + lado / 2, y + lado / 2, lado / 2 + 1, c, halo=False)
         else:
             corpo += celula(x, y, lado, nivel, c)
         if d.day <= 7 and lin == 0 and d.month != ultimo:
@@ -126,11 +127,11 @@ def grafico(t, total, dias):
                                ('Busiest', '%d on %s %d' % (pico[1], MESES[pico[0].month - 1], pico[0].day), True)]:
         corpo += mono(rot, x, y, c['fraca'], 9.5)
         x += larg_mono(rot, 9.5) + 8
-        corpo += txt(SANS_M, val, 13, x, y + .5, c['lanterna'] if destaque else c['tinta'])
+        corpo += txt(SANS_M, val, 13, x, y + .5, c['latao'] if destaque else c['tinta'])
         x += SANS_M.largura(val, 13) + 26
     lx = W - M
     corpo += mono('More', lx, y, c['fraca'], 9.5, 'end')
-    lx -= larg_mono('MORE', 9.5) + 8
+    lx -= larg_mono('More', 9.5) + 8
     for nivel in (4, 3, 2, 1, 0):
         lx -= 10
         corpo += celula(lx, y - 9, 10, nivel, c)
