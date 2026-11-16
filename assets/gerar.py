@@ -1,19 +1,13 @@
-"""Gera as imagens do README do perfil no sistema Noite (o mesmo do portfólio).
+"""Gera a imagem do topo do README no sistema Noite (o mesmo do portfólio).
 
-Regras desta versão, para não poluir:
-  · todo cartão é igual (mesmo fundo, borda, raio e margem de 32);
-  · as imagens têm 800 de largura, perto do tamanho em que o GitHub as mostra,
-    então o texto chega à tela com tamanho de leitura;
-  · ônix, pérola e um único metal (latão); a pérola marca o que está vivo;
-  · a única ilustração são os fios de seda com pérolas, revelados por uma
-    lanterna que passeia devagar, como no hero do site.
+O README é texto; a única imagem é esta: o nome e os fios de seda com pérolas,
+revelados por uma lanterna que passeia devagar, como no hero do site.
 
-Cada imagem sai em -noite (escuro) e -neblina (claro). O texto vira contorno,
-então as fontes aparecem iguais no GitHub sem carregar nada.
+Sai em -noite (escuro) e -neblina (claro). O texto vira contorno, então a fonte
+aparece igual no GitHub sem carregar nada.
 
 Uso:  pip install fonttools uharfbuzz
-      python3 assets/gerar.py        (imagens fixas)
-      python3 assets/atividade.py    (gráfico; roda todo dia na Action)
+      python3 assets/gerar.py
 As fontes ficam em assets/fontes (SIL Open Font License, licenças ao lado).
 """
 import html
@@ -88,35 +82,10 @@ class Fonte:
 
 
 SERIF = Fonte('LibreCaslonDisplay-Regular.ttf')
-ITALICO = Fonte('LibreCaslonText-Italic.ttf', ligaduras=False)  # sem o 'st' histórico da Caslon
-SANS = Fonte('InstrumentSans-Regular.ttf')
-SANS_M = Fonte('InstrumentSans-Medium.ttf')
-MONO = Fonte('IBMPlexMono-Regular.ttf')
 
 
 def txt(fonte, texto, tam, x, y, cor, track=0.0, ancora='start'):
     return '<path fill="%s" d="%s"/>' % (cor, fonte.path(texto, tam, x, y, track, ancora))
-
-
-def mono(texto, x, y, cor, tam=11, ancora='start'):
-    """Rótulo mono discreto, em caixa normal (datas, stacks, legendas)."""
-    return txt(MONO, texto, tam, x, y, cor, .02, ancora)
-
-
-def larg_mono(texto, tam=11):
-    return MONO.largura(texto, tam, .02)
-
-
-def quebra(fonte, texto, tam, largura):
-    linhas, atual = [], ''
-    for p in texto.split():
-        teste = (atual + ' ' + p).strip()
-        if atual and fonte.largura(teste, tam) > largura:
-            linhas.append(atual)
-            atual = p
-        else:
-            atual = teste
-    return linhas + [atual]
 
 
 def svg(h, titulo, corpo, estilo=''):
@@ -127,14 +96,6 @@ def svg(h, titulo, corpo, estilo=''):
 
 def cartao(h, c):
     return '<rect x=".5" y=".5" width="%d" height="%d" rx="12" fill="%s" stroke="%s"/>' % (W - 1, h - 1, c['cartao'], c['borda'])
-
-
-def cabecalho(n, titulo, y, c, direita=''):
-    corpo = mono(n, M, y, c['latao'], 12)
-    corpo += txt(SERIF, titulo, 24, M + larg_mono(n, 12) + 12, y + 2, c['tinta'])
-    if direita:
-        corpo += mono(direita, W - M, y, c['fraca'], 10.5, 'end')
-    return corpo
 
 
 # ─────────── Pérolas ───────────
@@ -148,17 +109,6 @@ def perola_defs(c):
 def perola(x, y, r, c, halo=True):
     corpo = '<circle cx="%.1f" cy="%.1f" r="%.1f" fill="%s"/>' % (x, y, r * 3, c['brilho']) if halo else ''
     return corpo + '<circle cx="%.1f" cy="%.1f" r="%.1f" fill="url(#pe)"/>' % (x, y, r)
-
-
-def pilula(x, y, texto, c, ponto=False):
-    w = larg_mono(texto, 10.5) + 28 + (14 if ponto else 0)
-    corpo = '<rect x="%.1f" y="%.1f" width="%.1f" height="26" rx="13" fill="none" stroke="%s"/>' % (x + .5, y + .5, w - 1, c['forte'])
-    tx = x + 14
-    if ponto:
-        corpo += perola(tx + 3, y + 13, 3.6, c, halo=False)
-        tx += 14
-    corpo += mono(texto, tx, y + 17, c['suave'], 10.5)
-    return corpo, w
 
 
 def salvar(nome, tema, conteudo):
@@ -231,113 +181,24 @@ def cena(x0, x1, top, h, c, ids, rota, perolas, fade=None):
 MOVIMENTO = '@media (prefers-reduced-motion:reduce){*{animation:none!important}}'
 
 
-# ─────────── 1. Topo ───────────
+# ─────────── Topo ───────────
 def topo(t):
-    H = 300
+    H = 240
     c = TEMAS[t]
     corpo = cartao(H, c) + '<defs>%s<clipPath id="tc"><rect x="1" y="1" width="%d" height="%d" rx="11"/></clipPath></defs>' % (
         perola_defs(c), W - 2, H - 2)
-    rota = [(690, 120), (610, 190), (520, 110), (650, 80), (720, 200)]
-    fundo, estilo = cena(330, W + 10, 30, 240, c, 't', rota,
-                         [(8, .55, 4.2), (17, .78, 3.2), (24, .38, 3.6), (12, .92, 2.8)], fade=(380, 560))
+    rota = [(690, 100), (600, 160), (510, 90), (650, 60), (720, 170)]
+    fundo, estilo = cena(300, W + 10, 24, 192, c, 't', rota,
+                         [(8, .55, 4.2), (17, .78, 3.2), (24, .38, 3.6), (12, .92, 2.8)], fade=(360, 540))
     corpo += '<g clip-path="url(#tc)">%s</g>' % fundo
-    p1, w1 = pilula(M, M, 'Open to relocation · NL / EU', c, ponto=True)
-    p2, _ = pilula(M + w1 + 8, M, 'Varginha, BR · UTC−3', c)
-    corpo += p1 + p2
-    corpo += txt(SERIF, 'Allison', 74, M - 3, 140, c['tinta'], -.02)
-    corpo += txt(SERIF, 'Freitas', 74, M - 3, 206, c['tinta'], -.02)
-    corpo += txt(SANS, 'Software engineer · Full-stack at F2 Tecnologia', 14.5, M, 240, c['suave'])
-    corpo += txt(SANS, 'I build systems that keep running when nobody is watching.', 14.5, M, 266, c['tinta'])
-    salvar('topo', t, svg(H, 'Allison Freitas. Software engineer, full-stack at F2 Tecnologia. I build systems that keep running when nobody is watching. Open to relocation, Netherlands / EU.', corpo, estilo + MOVIMENTO))
-
-
-# ─────────── 2. About, com o painel de fios ───────────
-SOBRE_TEXTO = [
-    'Full-stack engineer, mostly on the backend: public APIs, webhooks into ERPs and automations with LLMs.',
-    'On my own time I build systems that keep running when nobody is watching, from a Game Boy emulator in Go to an agent with persistent memory.',
-]
-SOBRE = [
-    ('now', 'Visão, a cognitive architecture with memory'),
-    ('goal', 'Relocate to the Netherlands / EU'),
-    ('beyond code', 'Late nights, rain, The Neighbourhood'),
-]
-
-
-def painel(x, y, w, h, c):
-    corpo = '<defs><clipPath id="pc"><rect x="%d" y="%d" width="%d" height="%d" rx="8"/></clipPath></defs>' % (x, y, w, h)
-    rota = [(x + w * .7, y + h * .3), (x + w * .3, y + h * .6), (x + w * .55, y + h * .2), (x + w * .8, y + h * .7)]
-    cena_, estilo = cena(x - 10, x + w + 10, y + 10, h - 20, c, 'p', rota,
-                         [(9, .3, 3.4), (18, .62, 4), (5, .85, 2.8)])
-    corpo += '<g clip-path="url(#pc)"><rect x="%d" y="%d" width="%d" height="%d" fill="%s"/>%s</g>' % (x, y, w, h, c['cartao'], cena_)
-    corpo += '<rect x="%.1f" y="%.1f" width="%d" height="%d" rx="8" fill="none" stroke="%s"/>' % (x + .5, y + .5, w - 1, h - 1, c['linha'])
-    return corpo, estilo
-
-
-def sobre(t):
-    c = TEMAS[t]
-    col = 470
-    y = 92
-    corpo_txt = ''
-    for par in SOBRE_TEXTO:
-        for linha in quebra(SANS, par, 14.5, col - M):
-            corpo_txt += txt(SANS, linha, 14.5, M, y, c['suave'])
-            y += 23
-        y += 12
-    y += 4
-    for k, v in SOBRE:
-        corpo_txt += '<path d="M%d %.1fH%d" stroke="%s"/>' % (M, y - 18.5, col, c['linha'])
-        corpo_txt += mono(k, M, y + 2, c['latao'], 10.5)
-        corpo_txt += txt(SANS, v, 13.5, M + 128, y + 3, c['tinta'])
-        y += 34
-    corpo_txt += '<path d="M%d %.1fH%d" stroke="%s"/>' % (M, y - 18.5, col, c['linha'])
-    H = int(y + 10)
-    corpo = cartao(H, c) + '<defs>%s</defs>' % perola_defs(c) + cabecalho('01', 'About', 50, c) + corpo_txt
-    pn, estilo = painel(col + 34, M, W - M - col - 34, H - 2 * M, c)
-    corpo += pn
-    alt = 'About. ' + ' '.join(SOBRE_TEXTO) + ' ' + ' '.join('%s: %s.' % kv for kv in SOBRE)
-    salvar('sobre', t, svg(H, alt, corpo, estilo + MOVIMENTO))
-
-
-# ─────────── 3. Rastros ───────────
-RASTROS = [
-    ('Visão', 'An agent born without a name that decides who it is.', 'Research · phases 0–6, 9', True),
-    ('AURIS', 'Listening without intruding: no bot joins the room.', 'Desktop · audio + LLM', False),
-    ('gameboy', 'Going back to childhood, demanding 498 out of 500.', 'Emulator · Go', False),
-    ('Thoth AI', 'Only claim what has a source.', 'SaaS · RAG', False),
-    ('MyBlock', 'Rules that enforce themselves, with nobody chasing.', 'Web3 · Solidity', False),
-    ('webhook-go', 'Nothing entrusted to me gets lost.', 'Infra · Go', True),
-]
-
-
-def rastros(t):
-    c = TEMAS[t]
-    topo_, lh = 76, 48
-    H = topo_ + lh * len(RASTROS) + 14
-    corpo = cartao(H, c) + '<defs>%s</defs>' % perola_defs(c)
-    corpo += cabecalho('02', 'Traces', 50, c, 'The trait first, then the tech')
-    for i, (nome, frase, tipo, ativo) in enumerate(RASTROS):
-        y = topo_ + i * lh
-        corpo += '<path d="M%d %.1fH%d" stroke="%s"/>' % (M, y + .5, W - M, c['linha'])
-        b = y + 31
-        corpo += mono('%02d' % (i + 1), M, b, c['fraca'], 10.5)
-        corpo += txt(SERIF, nome, 21, M + 34, b, c['tinta'])
-        if ativo:
-            corpo += perola(M + 34 + SERIF.largura(nome, 21) + 11, b - 6, 3.4, c, halo=False)
-        limite = W - M - larg_mono(tipo, 10) - 24 - 176
-        tam = 15.5
-        while ITALICO.largura(frase, tam) > limite:
-            tam -= .5
-        corpo += txt(ITALICO, frase, tam, M + 176, b, c['suave'])
-        corpo += mono(tipo, W - M, b, c['fraca'], 10, 'end')
-    alt = 'Traces. ' + ' '.join('%s: %s' % (n, f) for n, f, _, _ in RASTROS)
-    salvar('rastros', t, svg(H, alt, corpo))
+    corpo += txt(SERIF, 'Allison', 78, M + 4, 112, c['tinta'], -.02)
+    corpo += txt(SERIF, 'Freitas', 78, M + 4, 182, c['tinta'], -.02)
+    salvar('topo', t, svg(H, 'Allison Freitas', corpo, estilo + MOVIMENTO))
 
 
 def main():
     for tema in TEMAS:
         topo(tema)
-        sobre(tema)
-        rastros(tema)
     print('ok')
 
 

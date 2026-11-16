@@ -1,32 +1,29 @@
 <a href="https://allisonfreittass.github.io/">
   <picture>
-    <img src="assets/topo-noite.svg" alt="Allison Freitas. Software engineer, full-stack at F2 Tecnologia. I build systems that keep running when nobody is watching. Open to relocation, Netherlands / EU." width="100%">
+    <img src="assets/topo-noite.svg" alt="Allison Freitas" width="100%">
   </picture>
 </a>
 
-<picture>
-  <img src="assets/sobre-noite.svg" alt="About. Full-stack engineer, mostly on the backend: public APIs, webhooks into ERPs and automations with LLMs. On my own time I build systems that keep running when nobody is watching, from a Game Boy emulator in Go to an agent with persistent memory. Now: Visão. Goal: relocate to the Netherlands / EU. Beyond code: late nights, rain, The Neighbourhood." width="100%">
-</picture>
+### Software engineer · Full-stack at F2 Tecnologia
 
-<picture>
-  <img src="assets/rastros-noite.svg" alt="Traces. Visão: An agent born without a name that decides who it is. AURIS: Listening without intruding: no bot joins the room. gameboy: Going back to childhood, demanding 498 out of 500. Thoth AI: Only claim what has a source. MyBlock: Rules that enforce themselves, with nobody chasing. webhook-go: Nothing entrusted to me gets lost." width="100%">
-</picture>
+I build systems that keep running when nobody is watching: public APIs, webhooks into ERPs and automations with LLMs. Based in Varginha, Brazil, and open to relocating to the Netherlands / EU.
 
-<p align="center">
-  <a href="https://github.com/Allisonfreittass/visao">Visão</a> ·
-  <a href="https://github.com/Allisonfreittass/AURIS">AURIS</a> ·
-  <a href="https://github.com/Allisonfreittass/gameboy">gameboy</a> ·
-  <a href="https://github.com/Allisonfreittass/thothai-web">Thoth AI</a> ·
-  <a href="https://github.com/Allisonfreittass/myblock-backend">MyBlock</a> ·
-  <a href="https://github.com/Allisonfreittass/webhook-go">webhook-go</a>
-</p>
+**Now** building [Visão](https://github.com/Allisonfreittass/visao), a cognitive architecture with persistent memory.<br>
+**Beyond code** late nights, rain, The Neighbourhood.
 
-<picture>
-  <img src="assets/atividade-noite.svg" alt="Contributions in the last 12 months, with current and longest streak. Updated daily." width="100%">
-</picture>
+#### Selected work
 
-<p align="center">
-  <a href="https://www.linkedin.com/in/allisonfreittass/"><b>LinkedIn</b></a> ·
-  <a href="https://allisonfreittass.github.io/"><b>Portfolio</b></a> ·
-  <a href="mailto:allisonfreittass@gmail.com"><b>allisonfreittass@gmail.com</b></a>
-</p>
+**[Visão](https://github.com/Allisonfreittass/visao)** · An agent born without a name that decides who it is. *Python, FastAPI, PostgreSQL*<br>
+**[AURIS](https://github.com/Allisonfreittass/AURIS)** · A sales-call copilot that listens without a bot joining the room. *Electron, Python, faster-whisper*<br>
+**[gameboy](https://github.com/Allisonfreittass/gameboy)** · A Game Boy emulator in Go, 498 of 500 SM83 opcodes validated. *Go, Ebitengine*<br>
+**[Thoth AI](https://github.com/Allisonfreittass/thothai-web)** · Chat with your own documents, only claiming what has a source. *Next.js, FastAPI, RAG*<br>
+**[MyBlock](https://github.com/Allisonfreittass/myblock-backend)** · Rental contracts that enforce themselves, with nobody chasing. *Solidity, Vue*<br>
+**[webhook-go](https://github.com/Allisonfreittass/webhook-go)** · A webhook gateway where nothing entrusted to it gets lost. *Go, PostgreSQL*
+
+#### Stack
+
+TypeScript · Python · Go · SQL · Node · FastAPI · React · Next.js · PostgreSQL · Docker · Cloudflare · n8n
+
+---
+
+[Portfolio](https://allisonfreittass.github.io/) · [LinkedIn](https://www.linkedin.com/in/allisonfreittass/) · [allisonfreittass@gmail.com](mailto:allisonfreittass@gmail.com)
